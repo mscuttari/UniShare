@@ -13,14 +13,12 @@ import java.util.Properties;
 
 public class Main extends Application {
 
-
     public void start(Stage primaryStage) throws Exception {
         // Load the view
         Parent root = FXMLLoader.load(getClass().getResource("/views/main.fxml"));
 
         Scene scene = new Scene(root);
-        scene.getStylesheets().add("bootstrapfx.css");
-
+        //scene.getStylesheets().add("bootstrapfx.css");
 
         // Set minimum width and height
         try {
