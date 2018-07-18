@@ -1,0 +1,14 @@
+{
+  "require": {
+    "nikic/fast-route": "^1.0",
+    "doctrine/orm": "2.4.*"
+  },
+
+  "autoload": {
+    "psr-0": {
+      "Controllers": "src",
+      "Models": "src",
+      "Exceptions": "src"
+    }
+  }
+}

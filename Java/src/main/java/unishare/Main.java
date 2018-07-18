@@ -10,38 +10,44 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.ResourceBundle;
 
 public class Main extends Application {
 
     public void start(Stage primaryStage) throws Exception {
-        // Load the view
-        Parent root = FXMLLoader.load(getClass().getResource("/views/main.fxml"));
-
-        Scene scene = new Scene(root);
-        //scene.getStylesheets().add("bootstrapfx.css");
-
-        // Set minimum width and height
         try {
-            InputStream is = getClass().getResourceAsStream("/values/dimen.properties");
-            Properties prop = new Properties();
-            prop.load(is);
+            // Load the view
+            ResourceBundle resources = ResourceBundle.getBundle("values.strings");
+            Parent root = FXMLLoader.load(getClass().getResource("/views/main.fxml"), resources);
 
-            double min_width = Double.valueOf((String)prop.get("main_min_width"));
-            double min_height = Double.valueOf((String)prop.get("main_min_height"));
+            Scene scene = new Scene(root);
+            //scene.getStylesheets().add("bootstrapfx.css");
 
-            primaryStage.setMinWidth(min_width);
-            primaryStage.setMinHeight(min_height);
+            // Set minimum width and height
+            try {
+                InputStream is = getClass().getResourceAsStream("/values/dimen.properties");
+                Properties prop = new Properties();
+                prop.load(is);
 
-        } catch (IOException e) {
+                double min_width = Double.valueOf((String) prop.get("main_min_width"));
+                double min_height = Double.valueOf((String) prop.get("main_min_height"));
+
+                primaryStage.setMinWidth(min_width);
+                primaryStage.setMinHeight(min_height);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            // Show window
+            primaryStage.setScene(scene);
+            primaryStage.setTitle("UniShare");
+            primaryStage.getIcons().add(new Image("/images/documents.png"));
+            primaryStage.setMaximized(true);
+            primaryStage.show();
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
-        // Show window
-        primaryStage.setScene(scene);
-        primaryStage.setTitle("UniShare");
-        primaryStage.getIcons().add(new Image("/images/documents.png"));
-        primaryStage.setMaximized(true);
-        primaryStage.show();
     }
 
 
