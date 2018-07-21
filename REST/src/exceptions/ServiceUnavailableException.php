@@ -2,13 +2,13 @@
 
 namespace Exceptions;
 
-class NotFoundException extends RestException {
+class ServiceUnavailableException extends RestException {
 
 	/**
 	 * Constructor
 	 */
 	public function __construct() {
-		parent::__construct(self::NOT_FOUND);
+		parent::__construct(self::SERVICE_UNAVAILABLE);
 	}
 
 

@@ -2,13 +2,15 @@
 
 namespace Exceptions;
 
-class NotFoundException extends RestException {
+class AuthenticationException extends RestException {
 
 	/**
 	 * Constructor
+	 *
+	 * @param	string     	$errorCode			error code
 	 */
-	public function __construct() {
-		parent::__construct(self::NOT_FOUND);
+	public function __construct($errorCode) {
+		parent::__construct(self::UNAUTHORIZED, $errorCode);
 	}
 
 

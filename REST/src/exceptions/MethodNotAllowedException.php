@@ -2,7 +2,15 @@
 
 namespace Exceptions;
 
-class ForbiddenException extends RestException {
+class MethodNotAllowedException extends RestException {
+
+	/**
+	 * Constructor
+	 */
+	public function __construct() {
+		parent::__construct(self::METHOD_NOT_ALLOWED);
+	}
+
 
 	/**
 	 * Add exception specific data
