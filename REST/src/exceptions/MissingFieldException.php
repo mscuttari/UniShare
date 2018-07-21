@@ -4,25 +4,38 @@ namespace Exceptions;
 
 class MissingFieldException extends RestException {
 
-    private $missing_field = '';
+	private $missingField;
 
 
-    /**
-     * Get the missing field name
-     *
-     * @return  string      field name
-     */
-    public function getMissingField() {
-        return $this->missing_field;
-    }
+	/**
+	 * Constructor
+	 *
+	 * @param	string     	$missingField		missing field name
+	 */
+	public function __construct(string $missingField) {
+		parent::__construct(self::BAD_REQUEST, "MISSING_FIELD");
+
+		$this->missingField = $missingField;
+	}
 
 
-    /**
-     * Set the missing name name
-     *
-     * @param   $field      string      field name
-     */
-    public function setMissingField($field) {
-        $this->missing_field = $field;
-    }
+	/**
+	 * Get missing field name
+	 *
+	 * @return	string		missing field name
+	 */
+	public function getMissingField() : string {
+		return $this->missingField;
+	}
+
+
+	/**
+	 * Add exception specific data
+	 *
+	 * @param	array		$data		base level data
+	 */
+	protected function addErrorData(array &$data) {
+		$data["field"] = $this->getMissingField();
+	}
+
 }

@@ -1,14 +1,13 @@
 <?php
 
+use Exceptions\MethodNotAllowedException;
+use Exceptions\NotFoundException;
+use Exceptions\RestException;
+use Exceptions\ServiceUnavailableException;
+
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/settings.php';
 require_once __DIR__ . '/db_conn.php';
-
-// Maintenance status
-if ($maintenance) {
-	header('HTTP/1.0 503 Service Unavailable');
-	die();
-}
 
 $dispatcher = FastRoute\cachedDispatcher(function(FastRoute\RouteCollector $r) {
 	global $url_prefix;
@@ -34,23 +33,69 @@ if (false !== $pos = strpos($uri, '?')) {
 $uri = rawurldecode($uri);
 
 $routeInfo = $dispatcher->dispatch($httpMethod, $uri);
-switch ($routeInfo[0]) {
-	case FastRoute\Dispatcher::NOT_FOUND:
-		header('HTTP/1.0 404 Not Found');
-		die();
-		break;
 
-	case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
-		$allowedMethods = $routeInfo[1];
-		header('HTTP/1.0 405 Method Not Allowed');
-		die();
-		break;
+try {
+	// Maintenance status
+	if ($maintenance) {
+		throw new ServiceUnavailableException();
+	}
 
-	case FastRoute\Dispatcher::FOUND:
-		$handler = $routeInfo[1];
-		$vars = $routeInfo[2];
-		list($class, $method) = explode("/", $handler, 2);
-		$class = "Controllers\\" . $class;
-		call_user_func_array(array(new $class, $method), $vars);
-		break;
+	switch ($routeInfo[0]) {
+		case FastRoute\Dispatcher::NOT_FOUND:
+			throw new NotFoundException();
+
+		case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
+			throw new MethodNotAllowedException();
+
+		case FastRoute\Dispatcher::FOUND:
+			$handler = $routeInfo[1];
+			$vars = $routeInfo[2];
+			list($class, $method) = explode("/", $handler, 2);
+			$class = "Controllers\\" . $class;
+			$data = call_user_func_array(array(new $class, $method), $vars);
+			sendJson($data);
+	}
+
+} catch (RestException $e) {
+	header($e->getHttpResponseCode());
+	sendJson($e->getErrorData());
+	if ($debug) logError($e);
+	die();
+}
+
+
+/**
+ * Send JSON response
+ *
+ * @param   $data   array|string    data to be converted and sent
+ */
+function sendJson(array $data) {
+	header('Content-Type: application/json; charset=utf8');
+
+	if (!empty($data)) {
+		echo json_encode($data);
+	}
+}
+
+
+/**
+ * Write the error in the PHP error log
+ *
+ * @param   RestException	$e		exception
+ */
+function logError(RestException $e) {
+	$log = "";
+
+	// Message
+	$errorData = $e->getErrorData();
+
+	if (!empty($errorData)) {
+		$log .= print_r($e->getErrorData(), true);
+		$log .= "\n\n";
+	}
+
+	// Trace
+	$log .= $e->getTraceAsString();
+
+	error_log($log);
 }

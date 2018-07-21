@@ -5,10 +5,10 @@
   },
 
   "autoload": {
-    "psr-0": {
-      "Controllers": "src",
-      "Models": "src",
-      "Exceptions": "src"
+    "psr-4": {
+      "Controllers\\": "src/controllers/",
+      "Models\\": "src/models/",
+      "Exceptions\\": "src/exceptions/"
     }
   }
 }
