@@ -5,6 +5,6 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:id="borderPane"
-            fx:controller="unishare.controllers.MainController">
+            fx:controller="it.unishare.client.controllers.MainController">
 
 </BorderPane>

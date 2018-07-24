@@ -7,7 +7,7 @@
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="unishare.controllers.MenuController"
+            fx:controller="it.unishare.client.controllers.MenuController"
             stylesheets="@../styles/menu.css"
             styleClass="sidebar">
 
