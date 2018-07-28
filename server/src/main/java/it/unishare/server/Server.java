@@ -71,7 +71,13 @@ public class Server extends UnicastRemoteObject implements RmiServerInterface {
         this.address = address;
         this.port = port;
         this.entityManagerFactory = Persistence.createEntityManagerFactory(persistenceUnit);
-        //this.node = new Node();
+
+        try {
+            this.node = new Node();
+        } catch (Exception e) {
+            LogUtils.e(TAG, "Can't initialize DHT network");
+            e.printStackTrace();
+        }
     }
 
 

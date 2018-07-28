@@ -61,10 +61,13 @@ public class Node {
      * @return  IP address
      */
     private static InetAddress getServerIP() throws IOException {
+        return InetAddress.getByName("127.0.0.1");
+        /*
         URL whatIsMyIP = new URL("http://checkip.amazonaws.com");
         BufferedReader in = new BufferedReader(new InputStreamReader(whatIsMyIP.openStream()));
         String ip = in.readLine();
         return InetAddress.getByName(ip);
+        */
     }
 
 
@@ -94,8 +97,8 @@ public class Node {
     private void startServer() {
         connected = true;
 
-        new Thread(() -> {
-            DatagramPacket packet = new DatagramPacket(new byte[1024], 1024);
+        Runnable server = () -> {
+            DatagramPacket packet = new DatagramPacket(new byte[16416], 16416);
 
             while (connected) {
                 try {
@@ -122,7 +125,10 @@ public class Node {
                     ex.printStackTrace();
                 }
             }
-        }).run();
+        };
+
+        Thread thread = new Thread(server);
+        thread.start();
     }
 
 
@@ -164,7 +170,7 @@ public class Node {
         dispatcher.sendMessage(message, new Dispatcher.MessageListener() {
             @Override
             public void onSuccess() {
-                // Ping message successfully sent (response still not received)
+                routingTable.addNode(node);
             }
 
             @Override

@@ -46,8 +46,11 @@ class Dispatcher {
     public void sendMessage(Message message, MessageListener listener) {
         try {
             ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
+
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteOutputStream);
             objectOutputStream.writeObject(message);
+            objectOutputStream.flush();
+            objectOutputStream.close();
 
             byte[] data = byteOutputStream.toByteArray();
             NND destination = message.getDestination();

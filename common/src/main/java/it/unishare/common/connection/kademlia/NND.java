@@ -1,12 +1,15 @@
 package it.unishare.common.connection.kademlia;
 
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.util.Calendar;
 
 /**
  * Network Node Data
  */
-public class NND {
+public class NND implements Serializable {
+
+    private static final long serialVersionUID = -6360597132702310992L;
 
     /** ID */
     private long id;
