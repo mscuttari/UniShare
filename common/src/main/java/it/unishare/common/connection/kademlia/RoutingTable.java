@@ -20,7 +20,7 @@ class RoutingTable {
         List<Bucket> buckets = new ArrayList<>(size);
 
         for (int i = 0; i < size; i++)
-            buckets.set(i, new Bucket(node));
+            buckets.add(new Bucket(node));
 
         this.buckets = Collections.unmodifiableList(buckets);
     }

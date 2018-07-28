@@ -1,5 +1,7 @@
 package it.unishare.common.connection.kademlia;
 
+import it.unishare.common.utils.RandomGaussian;
+
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -9,6 +11,8 @@ class Bucket extends ArrayList<NND> {
     private static final int size = 20;
     private Node parentNode;
     private Queue<NND> queue = new LinkedList<>();
+    private Map<NND, Timer> scheduledTimers = new HashMap<>();
+    private RandomGaussian randomGaussian = new RandomGaussian();
 
 
     /**
@@ -47,6 +51,7 @@ class Bucket extends ArrayList<NND> {
             nodeInfo.setLastSeen(nnd.getLastSeen());
 
             sort(lastSeenComparator());
+            schedulePing(nodeInfo);
             return true;
         }
 
@@ -56,8 +61,10 @@ class Bucket extends ArrayList<NND> {
 
         // Add the node if there is enough free space in the bucket
         if (super.size() < size) {
-            final boolean result = super.add(queue.poll());
+            NND node = queue.poll();
+            final boolean result = super.add(node);
             sort(lastSeenComparator());
+            schedulePing(node);
             return result;
         }
 
@@ -93,31 +100,40 @@ class Bucket extends ArrayList<NND> {
 
     @Override
     public synchronized NND remove(int index) {
-        return super.remove(index);
+        throw new UnsupportedOperationException();
     }
 
 
     @Override
     public synchronized boolean remove(Object o) {
-        return super.remove(o);
+        boolean result = super.remove(o);
+
+        if (o instanceof NND) {
+            NND node = (NND) o;
+            Timer timer = scheduledTimers.get(o);
+            timer.cancel();
+            scheduledTimers.remove(node);
+        }
+
+        return result;
     }
 
 
     @Override
     protected synchronized void removeRange(int fromIndex, int toIndex) {
-        super.removeRange(fromIndex, toIndex);
+        throw new UnsupportedOperationException();
     }
 
 
     @Override
     public synchronized boolean removeAll(Collection<?> c) {
-        return super.removeAll(c);
+        throw new UnsupportedOperationException();
     }
 
 
     @Override
     public synchronized boolean removeIf(Predicate<? super NND> filter) {
-        return super.removeIf(filter);
+        throw new UnsupportedOperationException();
     }
 
 
@@ -128,6 +144,32 @@ class Bucket extends ArrayList<NND> {
      */
     private Comparator<NND> lastSeenComparator() {
         return Comparator.comparing(NND::getLastSeen);
+    }
+
+
+    /**
+     * Schedule ping for a node
+     *
+     * @param   node    node to be pinged
+     */
+    private void schedulePing(NND node) {
+        final int PING_PERIOD = Math.max((int) (randomGaussian.getGaussian(15, 1) * 1000), 5000);
+
+        Timer timer = scheduledTimers.get(node);
+
+        if (timer != null)
+            timer.cancel();
+
+        timer = new Timer();
+
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                parentNode.ping(node);
+            }
+        }, PING_PERIOD);
+
+        scheduledTimers.put(node, timer);
     }
 
 

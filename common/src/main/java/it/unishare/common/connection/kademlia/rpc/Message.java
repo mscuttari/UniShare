@@ -2,12 +2,15 @@ package it.unishare.common.connection.kademlia.rpc;
 
 import it.unishare.common.connection.kademlia.NND;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 /**
  * Remote Procedure Call
  */
-public abstract class Message<T> {
+public abstract class Message<T> implements Serializable {
+
+    private static final long serialVersionUID = -4088040739038751081L;
 
     private long id;
     private NND source, destination;
@@ -23,6 +26,19 @@ public abstract class Message<T> {
         this.id = generateId();
         this.source = source;
         this.destination = destination;
+    }
+
+
+    @Override
+    public int hashCode() {
+        return (int) id;
+    }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Message)) return false;
+        return id == ((Message) obj).id;
     }
 
 

@@ -2,6 +2,7 @@ package it.unishare.common.connection.kademlia;
 
 import it.unishare.common.connection.kademlia.rpc.Message;
 import it.unishare.common.connection.kademlia.rpc.Ping;
+import it.unishare.common.utils.LogUtils;
 
 import java.io.*;
 import java.net.*;
@@ -61,10 +62,13 @@ public class Node {
      * @return  IP address
      */
     private static InetAddress getServerIP() throws IOException {
+        return InetAddress.getByName("127.0.0.1");
+        /*
         URL whatIsMyIP = new URL("http://checkip.amazonaws.com");
         BufferedReader in = new BufferedReader(new InputStreamReader(whatIsMyIP.openStream()));
         String ip = in.readLine();
         return InetAddress.getByName(ip);
+        */
     }
 
 
@@ -94,8 +98,8 @@ public class Node {
     private void startServer() {
         connected = true;
 
-        new Thread(() -> {
-            DatagramPacket packet = new DatagramPacket(new byte[1024], 1024);
+        Runnable server = () -> {
+            DatagramPacket packet = new DatagramPacket(new byte[16416], 16416);
 
             while (connected) {
                 try {
@@ -122,7 +126,12 @@ public class Node {
                     ex.printStackTrace();
                 }
             }
-        }).run();
+        };
+
+        Thread thread = new Thread(server);
+        thread.start();
+
+        log("Server started");
     }
 
 
@@ -136,8 +145,10 @@ public class Node {
 
         // Ping
         if (message instanceof Ping) {
+            log("Ping request received from " + message.getSource().getId());
             Ping response = ((Ping) message).createResponse();
             dispatcher.sendMessage(response);
+            log("Ping response sent to " + response.getDestination().getId());
         }
     }
 
@@ -149,7 +160,6 @@ public class Node {
      */
     public void bootstrap(NND accessPoint) {
         ping(accessPoint);
-        discover();
     }
 
 
@@ -159,16 +169,19 @@ public class Node {
      * @param   node    node to be pinged
      */
     void ping(NND node) {
+        log("Pinging " + node.getId());
         Ping message = new Ping(getInfo(), node);
 
         dispatcher.sendMessage(message, new Dispatcher.MessageListener() {
             @Override
             public void onSuccess() {
-                // Ping message successfully sent (response still not received)
+                log("Ping response received from " + message.getDestination().getId());
+                routingTable.addNode(node);
             }
 
             @Override
             public void onFailure() {
+                log("Can't ping " + message.getDestination().getId());
                 routingTable.removeNode(node);
             }
         });
@@ -200,8 +213,13 @@ public class Node {
     }
 
 
-    private void discover() {
-
+    /**
+     * Log message
+     *
+     * @param   message     message to be logged
+     */
+    private void log(String message) {
+        LogUtils.d("Node [" + info.getId() + "]", message);
     }
 
 }
