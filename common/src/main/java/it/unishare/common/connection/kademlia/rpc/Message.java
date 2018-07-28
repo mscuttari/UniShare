@@ -29,6 +29,19 @@ public abstract class Message<T> implements Serializable {
     }
 
 
+    @Override
+    public int hashCode() {
+        return (int) id;
+    }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Message)) return false;
+        return id == ((Message) obj).id;
+    }
+
+
     /**
      * Get message ID
      *

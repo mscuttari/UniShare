@@ -3,16 +3,17 @@ package it.unishare.common.connection.kademlia;
 import it.unishare.common.connection.kademlia.rpc.Message;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 class Dispatcher {
 
-    private Map<Long, MessageListener> listeners;
+    private Map<Message, MessageListener> listeners;
     private DatagramSocket socket;
 
 
@@ -44,6 +45,8 @@ class Dispatcher {
      * @param   listener        response listener
      */
     public void sendMessage(Message message, MessageListener listener) {
+        final int TIMEOUT = 10000;
+
         try {
             ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
 
@@ -57,11 +60,21 @@ class Dispatcher {
             DatagramPacket packet = new DatagramPacket(data, data.length, destination.getIp(), destination.getPort());
             socket.send(packet);
 
-            listeners.put(message.getId(), listener);
+            listeners.put(message, listener);
 
         } catch (Exception e) {
             if (listener != null)
                 listener.onFailure();
+        }
+
+        if (listener != null) {
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    if (listeners.containsKey(message))
+                        listener.onFailure();
+                }
+            }, TIMEOUT);
         }
     }
 
@@ -73,7 +86,7 @@ class Dispatcher {
      * @return  true if the message is a response to a previously sent message
      */
     public boolean isResponse(Message message) {
-        return listeners.containsKey(message.getId());
+        return listeners.containsKey(message);
     }
 
 
@@ -83,12 +96,12 @@ class Dispatcher {
      * @param   message     received message
      */
     public void dispatch(Message message) {
-        MessageListener listener = listeners.get(message.getId());
+        MessageListener listener = listeners.get(message);
 
         if (listener != null)
             listener.onSuccess();
 
-        listeners.remove(message.getId());
+        listeners.remove(message);
     }
 
 
