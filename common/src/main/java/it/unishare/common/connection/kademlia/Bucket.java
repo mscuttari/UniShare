@@ -1,5 +1,7 @@
 package it.unishare.common.connection.kademlia;
 
+import it.unishare.common.utils.RandomGaussian;
+
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -10,6 +12,7 @@ class Bucket extends ArrayList<NND> {
     private Node parentNode;
     private Queue<NND> queue = new LinkedList<>();
     private Map<NND, Timer> scheduledTimers = new HashMap<>();
+    private RandomGaussian randomGaussian = new RandomGaussian();
 
 
     /**
@@ -150,7 +153,7 @@ class Bucket extends ArrayList<NND> {
      * @param   node    node to be pinged
      */
     private void schedulePing(NND node) {
-        final int PING_PERIOD = 10000;
+        final int PING_PERIOD = Math.max((int) (randomGaussian.getGaussian(15, 1) * 1000), 5000);
 
         Timer timer = scheduledTimers.get(node);
 
