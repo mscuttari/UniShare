@@ -1,13 +1,13 @@
 package it.unishare.client.connection.server;
 
 
-import it.unishare.common.connection.RmiClientInterface;
-import it.unishare.common.connection.RmiServerInterface;
+import it.unishare.common.connection.kademlia.NND;
+import it.unishare.common.connection.server.RmiClientInterface;
+import it.unishare.common.connection.server.RmiServerInterface;
 import it.unishare.common.exceptions.*;
 import it.unishare.common.models.User;
 import it.unishare.common.utils.LogUtils;
 
-import java.io.Serializable;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 
@@ -89,6 +89,24 @@ public class RmiClient implements RmiClientInterface {
 
         } catch (EmailAlreadyInUseException e) {
             LogUtils.e(TAG, "Email is already in use");
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Get Kademlia access point information
+     *
+     * @return  access point information
+     */
+    public NND getKademliaAccessPointInfo() {
+        try {
+            return server.getKademliaInfo();
+
+        } catch (RemoteException e) {
+            LogUtils.e(TAG, "Can't obtain Kademlia access point information");
+            e.printStackTrace();
         }
 
         return null;

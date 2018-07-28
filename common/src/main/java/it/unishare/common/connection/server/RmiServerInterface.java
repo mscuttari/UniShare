@@ -1,5 +1,6 @@
-package it.unishare.common.connection;
+package it.unishare.common.connection.server;
 
+import it.unishare.common.connection.kademlia.NND;
 import it.unishare.common.exceptions.*;
 import it.unishare.common.models.User;
 
@@ -31,5 +32,14 @@ public interface RmiServerInterface extends Remote {
      * @throws  InvalidDataException    if email or password are invalid
      */
     User signup(User user) throws RemoteException, MissingFieldException, InvalidDataException, EmailAlreadyInUseException;
+
+
+    /**
+     * Get information representing the server in the Kademlia network
+     *
+     * @return  node information {see {@link NND}}
+     * @throws  RemoteException in case of connection error
+     */
+    NND getKademliaInfo() throws RemoteException;
 
 }
