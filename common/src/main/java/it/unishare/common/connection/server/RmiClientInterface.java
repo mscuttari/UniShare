@@ -1,4 +1,4 @@
-package it.unishare.common.connection;
+package it.unishare.common.connection.server;
 
 import java.rmi.Remote;
 
