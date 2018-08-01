@@ -65,6 +65,12 @@ public class NND implements Serializable {
     }
 
 
+    @Override
+    public String toString() {
+        return id.toString();
+    }
+
+
     /**
      * Get ID
      *

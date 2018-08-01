@@ -16,8 +16,6 @@ public class MainController extends AbstractController implements Initializable 
 
     @FXML private BorderPane borderPane;
 
-    private Node node;
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // Load left menu
@@ -26,8 +24,10 @@ public class MainController extends AbstractController implements Initializable 
         try {
             RmiClient rmiClient = new RmiClient("rmi://127.0.0.1/unishare");
             NND dhtAccessPoint = rmiClient.getKademliaAccessPointInfo();
-            node = new Node();
+
+            Node node = new Node();
             node.bootstrap(dhtAccessPoint);
+
             System.out.println("DHT network joined");
 
         } catch (Exception e) {

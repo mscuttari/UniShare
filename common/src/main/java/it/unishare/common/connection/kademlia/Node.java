@@ -4,9 +4,11 @@ import it.unishare.common.connection.kademlia.rpc.FindNode;
 import it.unishare.common.connection.kademlia.rpc.Message;
 import it.unishare.common.connection.kademlia.rpc.Ping;
 import it.unishare.common.utils.LogUtils;
+import it.unishare.common.utils.Pair;
 import sun.awt.Mutex;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -161,7 +163,7 @@ public class Node {
             new Timer().schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    //findNode(bootstrapNode.getId());
+                    findNode(bootstrapNode.getId());
                 }
             }, 5000);
         }
@@ -196,30 +198,36 @@ public class Node {
 
 
     /**
-     * Get the k nearest nodes to the target ID
+     * Node lookup
      *
-     * @param   targetId        ID of the searched node
+     * @param   targetId        target node ID
      */
     private void findNode(NodeId targetId) {
+        // Get the first alpha nodes to send the first requests
         List<NND> nearestNodes = routingTable.getNearestNodes(targetId, SIMULTANEOUS_LOOKUPS);
+        if (nearestNodes.size() == 0) return;
+        log("Starting lookup nodes: " + nearestNodes);
 
-        nearestNodes.remove(info);
+        // Send asynchronous requests
+        List<NND> encounteredNodes = new ArrayList<>();
+
         nearestNodes.forEach(node -> CompletableFuture.runAsync(() -> {
             FindNode message = new FindNode(getInfo(), node, targetId);
 
             dispatcher.sendMessage(message, new Dispatcher.MessageListener() {
                 @Override
                 public void onSuccess(Message response) {
-                    if (response instanceof FindNode) {
-                        FindNode findNodeResponse = (FindNode) response;
-                        List<NND> nearestNodes = findNodeResponse.getNearestNodes();
+                    assert response instanceof FindNode;
 
-                        boolean found = false;
-                        for (NND node : nearestNodes) {
-                            if (!info.equals(node))
-                                routingTable.addNode(node);
-                        }
-                    }
+                    List<NND> nearestNodes = new ArrayList<>(((FindNode) response).getNearestNodes());
+                    nearestNodes.remove(getInfo());
+                    log("Recursive lookup nodes: " + nearestNodes);
+
+                    Pair<List<NND>, List<NND>> lookupGroups = splitLookupGroup(nearestNodes);
+                    List<NND> primaryGroup = lookupGroups.first;
+                    List<NND> secondaryGroup = lookupGroups.second;
+
+                    lookup(encounteredNodes, primaryGroup, secondaryGroup, targetId);
                 }
 
                 @Override
@@ -232,15 +240,96 @@ public class Node {
 
 
     /**
-     * Get distance from an another node
+     * Recursive node lookup
      *
-     * @param   firstId     first node ID
-     * @param   secondId    second node ID
-     *
-     * @return  distance
+     * @param   queriedNodes        already queries nodes during the lookup process
+     * @param   primaryGroup        primary group (max size of SIMULTANEOUS_LOOKUPS)
+     * @param   secondaryGroup      secondary group
+     * @param   targetId            target node ID
      */
-    public static long distance(long firstId, long secondId) {
-        return firstId ^ secondId;
+    private void lookup(List<NND> queriedNodes, List<NND> primaryGroup, List<NND> secondaryGroup, NodeId targetId) {
+        primaryGroup.forEach(recipient -> CompletableFuture.runAsync(() -> {
+            if (queriedNodes.contains(recipient))
+                return;
+
+            FindNode message = new FindNode(getInfo(), recipient, targetId);
+
+            dispatcher.sendMessage(message, new Dispatcher.MessageListener() {
+                @Override
+                public void onSuccess(Message response) {
+                    // Add the node to the queried ones
+                    queriedNodes.add(recipient);
+                    routingTable.addNode(response.getSource());
+
+                    // Get query groups
+                    assert response instanceof FindNode;
+
+                    List<NND> nearestNodes = new ArrayList<>(((FindNode) response).getNearestNodes());
+                    nearestNodes.remove(getInfo());
+                    nearestNodes.removeAll(queriedNodes);
+                    log("Recursive lookup nodes: " + nearestNodes);
+
+                    Pair<List<NND>, List<NND>> lookupGroups = splitLookupGroup(nearestNodes);
+                    List<NND> nextPrimaryGroup = lookupGroups.first;
+                    List<NND> nextSecondaryGroup = lookupGroups.second;
+
+                    // Sort the encountered nodes in order to get the nearest encountered node to the target node
+                    queriedNodes.sort((o1, o2) -> {
+                        BigInteger firstDistance  = o1.getId().distance(targetId);
+                        BigInteger secondDistance = o2.getId().distance(targetId);
+                        return firstDistance.compareTo(secondDistance);
+                    });
+
+                    boolean shouldContinueWithPrimaryGroup = false;
+                    NND nearestNode = queriedNodes.get(0);
+                    for (NND node : nearestNodes) {
+                        shouldContinueWithPrimaryGroup = node.getId().distance(targetId).compareTo(nearestNode.getId().distance(targetId)) <= 0;
+                        if (shouldContinueWithPrimaryGroup) break;
+                    }
+
+                    if (shouldContinueWithPrimaryGroup) {
+                        lookup(queriedNodes, nextPrimaryGroup, nextSecondaryGroup, targetId);
+                    } else {
+                        // There is no new nearer node
+                        lookup(queriedNodes, secondaryGroup, new ArrayList<>(), targetId);
+                    }
+                }
+
+                @Override
+                public void onFailure() {
+                    ping(recipient);
+                }
+            });
+        }));
+    }
+
+
+    /**
+     * Split nearest nodes list into primary and secondary group for successive lookup queries
+     *
+     * @param   nodes       complete nearest nodes list
+     * @return  primary and secondary query groups
+     */
+    private static Pair<List<NND>, List<NND>> splitLookupGroup(List<NND> nodes) {
+        // Primary group
+        List<NND> primaryGroup;
+
+        if (nodes.size() == 0) {
+            primaryGroup = new ArrayList<>();
+        } else {
+            primaryGroup = nodes.subList(0, Math.min(nodes.size(), SIMULTANEOUS_LOOKUPS));
+        }
+
+        // Secondary group
+        List<NND> secondaryGroup;
+
+        if (nodes.size() == 0 || SIMULTANEOUS_LOOKUPS >= nodes.size()) {
+            secondaryGroup = new ArrayList<>();
+        } else {
+            secondaryGroup = nodes.subList(SIMULTANEOUS_LOOKUPS, nodes.size());
+        }
+
+        return new Pair<>(primaryGroup, secondaryGroup);
     }
 
 

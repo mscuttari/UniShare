@@ -1,28 +1,30 @@
 package it.unishare.common.connection.kademlia;
 
+import it.unishare.common.utils.LogUtils;
+
 import java.math.BigInteger;
 import java.util.*;
 
 class RoutingTable {
 
-    private final Node node;
+    private final Node parentNode;
     private final List<Bucket> buckets;
 
 
     /**
      * Routing table size
      *
-     * @param   node            node
+     * @param   parentNode      parent node
      * @param   idLength        table size
      * @param   k               bucket size
      */
-    public RoutingTable(Node node, int idLength, int k) {
-        this.node = node;
+    public RoutingTable(Node parentNode, int idLength, int k) {
+        this.parentNode = parentNode;
 
         List<Bucket> buckets = new ArrayList<>(idLength);
 
         for (int i = 0; i < idLength; i++)
-            buckets.add(new Bucket(k, node));
+            buckets.add(new Bucket(k, parentNode));
 
         this.buckets = Collections.unmodifiableList(buckets);
     }
@@ -49,7 +51,7 @@ class RoutingTable {
             nearestNodes.addAll(bucketNearestNodes);
         }
 
-        return nearestNodes.subList(0, Math.min(nearestNodes.size(), amount));
+        return new ArrayList<>(nearestNodes.subList(0, Math.min(nearestNodes.size(), amount)));
     }
 
 
@@ -59,7 +61,9 @@ class RoutingTable {
      * @param   node    node info
      */
     public void addNode(NND node) {
+        log("Adding node " + node.getId());
         getBucket(node).add(node);
+        log("Node " + node.getId() + " added");
     }
 
 
@@ -80,9 +84,19 @@ class RoutingTable {
      * @return  bucket
      */
     private Bucket getBucket(NND node) {
-        NodeId xor = this.node.getInfo().getId().xor(node.getId());
+        NodeId xor = parentNode.getInfo().getId().xor(node.getId());
         int bucketNumber = xor.getLeadingZeros();
         return buckets.get(bucketNumber);
+    }
+
+
+    /**
+     * Log message
+     *
+     * @param   message     message to be logged
+     */
+    private void log(String message) {
+        LogUtils.d("Node [" + parentNode.getInfo().getId() + "]", message);
     }
 
 }
