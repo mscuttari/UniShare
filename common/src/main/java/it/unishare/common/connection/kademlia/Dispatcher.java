@@ -63,6 +63,7 @@ class Dispatcher {
             listeners.put(message, listener);
 
         } catch (Exception e) {
+            e.printStackTrace();
             if (listener != null)
                 listener.onFailure();
         }

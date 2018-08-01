@@ -205,6 +205,9 @@ class Bucket extends ArrayList<NND> {
             return firstDistance.compareTo(secondDistance);
         });
 
+        if (allNodes.size() == 0)
+            return allNodes;
+
         return new ArrayList<>(allNodes.subList(0, Math.min(allNodes.size(), amount)));
     }
 
