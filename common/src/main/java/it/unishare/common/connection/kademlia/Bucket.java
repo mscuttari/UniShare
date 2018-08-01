@@ -1,25 +1,33 @@
 package it.unishare.common.connection.kademlia;
 
+import it.unishare.common.connection.kademlia.rpc.Message;
+import it.unishare.common.connection.kademlia.rpc.Ping;
+import it.unishare.common.utils.LogUtils;
 import it.unishare.common.utils.RandomGaussian;
 
+import java.math.BigInteger;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 class Bucket extends ArrayList<NND> {
 
-    private static final int size = 20;
+    private int size;
     private Node parentNode;
     private Queue<NND> queue = new LinkedList<>();
-    private Map<NND, Timer> scheduledTimers = new HashMap<>();
     private RandomGaussian randomGaussian = new RandomGaussian();
 
 
     /**
      * Bucket size
+     *
+     * @param   k       bucket size
+     * @param   node    parent node
      */
-    public Bucket(Node node) {
-        super(size);
+    public Bucket(int k, Node node) {
+        super(k);
+
+        this.size = k;
         this.parentNode = node;
     }
 
@@ -46,12 +54,11 @@ class Bucket extends ArrayList<NND> {
         if (index >= 0) {
             NND nodeInfo = get(index);
 
-            nodeInfo.setIp(nnd.getIp());
+            nodeInfo.setAddress(nnd.getAddress());
             nodeInfo.setPort(nnd.getPort());
             nodeInfo.setLastSeen(nnd.getLastSeen());
 
             sort(lastSeenComparator());
-            schedulePing(nodeInfo);
             return true;
         }
 
@@ -64,12 +71,29 @@ class Bucket extends ArrayList<NND> {
             NND node = queue.poll();
             final boolean result = super.add(node);
             sort(lastSeenComparator());
-            schedulePing(node);
             return result;
         }
 
-        // If the bucket is full, ping the least recently seen nodes in order to search for dead ones
-        forEach(n -> parentNode.ping(n));
+        // If the bucket is full, ping the least recently seen node in order to see if it's still alive
+        NND firstNode = get(0);
+        Ping ping = new Ping(parentNode.getInfo(), firstNode);
+        log("Pinging " + firstNode.getId());
+
+        parentNode.getDispatcher().sendMessage(ping, new Dispatcher.MessageListener() {
+            @Override
+            public void onSuccess(Message response) {
+                log("Ping response received from " + response.getSource().getId());
+                queue.poll();
+            }
+
+            @Override
+            public void onFailure() {
+                log("Can't ping " + ping.getDestination().getId());
+                remove(firstNode);
+                Bucket.super.add(queue.poll());
+                sort(lastSeenComparator());
+            }
+        });
 
         return false;
     }
@@ -106,16 +130,7 @@ class Bucket extends ArrayList<NND> {
 
     @Override
     public synchronized boolean remove(Object o) {
-        boolean result = super.remove(o);
-
-        if (o instanceof NND) {
-            NND node = (NND) o;
-            Timer timer = scheduledTimers.get(o);
-            timer.cancel();
-            scheduledTimers.remove(node);
-        }
-
-        return result;
+        return super.remove(o);
     }
 
 
@@ -153,7 +168,7 @@ class Bucket extends ArrayList<NND> {
      * @param   node    node to be pinged
      */
     private void schedulePing(NND node) {
-        final int PING_PERIOD = Math.max((int) (randomGaussian.getGaussian(15, 1) * 1000), 5000);
+        /*final int PING_PERIOD = Math.max((int) (randomGaussian.getGaussian(15, 1) * 1000), 5000);
 
         Timer timer = scheduledTimers.get(node);
 
@@ -165,31 +180,42 @@ class Bucket extends ArrayList<NND> {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                parentNode.ping(node);
+                //parentNode.ping(node);
             }
         }, PING_PERIOD);
 
-        scheduledTimers.put(node, timer);
+        scheduledTimers.put(node, timer);*/
     }
 
 
     /**
-     * Get nearest nodes
+     * Get nearest nodes to a node ID
      *
      * @param   nodeId      node ID to search neighbours for
-     * @param   amount      amount of nodes
+     * @param   amount      amount of desired nearest nodes
      *
      * @return  nearest nodes
      */
-    public List<NND> getNearestNodes(long nodeId, int amount) {
+    public List<NND> getNearestNodes(NodeId nodeId, int amount) {
         List<NND> allNodes = new ArrayList<>(this);
 
         allNodes.sort((o1, o2) -> {
-            long difference = o1.getId() - o2.getId();
-            return difference == 0 ? 0 : difference < 0 ? -1 : 1;
+            BigInteger firstDistance  = o1.getId().distance(nodeId);
+            BigInteger secondDistance = o2.getId().distance(nodeId);
+            return firstDistance.compareTo(secondDistance);
         });
 
-        return new ArrayList<>(allNodes.subList(0, amount));
+        return new ArrayList<>(allNodes.subList(0, Math.min(allNodes.size(), amount)));
+    }
+
+
+    /**
+     * Log message
+     *
+     * @param   message     message to be logged
+     */
+    private void log(String message) {
+        LogUtils.d("Node [" + parentNode.getInfo().getId() + "]", message);
     }
 
 }

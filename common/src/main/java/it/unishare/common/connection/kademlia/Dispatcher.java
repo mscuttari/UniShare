@@ -57,7 +57,7 @@ class Dispatcher {
 
             byte[] data = byteOutputStream.toByteArray();
             NND destination = message.getDestination();
-            DatagramPacket packet = new DatagramPacket(data, data.length, destination.getIp(), destination.getPort());
+            DatagramPacket packet = new DatagramPacket(data, data.length, destination.getAddress(), destination.getPort());
             socket.send(packet);
 
             listeners.put(message, listener);
@@ -99,14 +99,14 @@ class Dispatcher {
         MessageListener listener = listeners.get(message);
 
         if (listener != null)
-            listener.onSuccess();
+            listener.onSuccess(message);
 
         listeners.remove(message);
     }
 
 
     public static abstract class MessageListener {
-        public abstract void onSuccess();
+        public abstract void onSuccess(Message response);
         public abstract void onFailure();
     }
 

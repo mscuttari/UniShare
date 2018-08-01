@@ -74,6 +74,7 @@ public class Server extends UnicastRemoteObject implements RmiServerInterface {
 
         try {
             this.node = new Node();
+            node.bootstrap(node.getInfo());
         } catch (Exception e) {
             LogUtils.e(TAG, "Can't initialize DHT network");
             e.printStackTrace();

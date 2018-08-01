@@ -1,5 +1,6 @@
 package it.unishare.common.connection.kademlia;
 
+import java.math.BigInteger;
 import java.util.*;
 
 class RoutingTable {
@@ -11,42 +12,44 @@ class RoutingTable {
     /**
      * Routing table size
      *
-     * @param   node        node
-     * @param   size        table size
+     * @param   node            node
+     * @param   idLength        table size
+     * @param   k               bucket size
      */
-    public RoutingTable(Node node, int size) {
+    public RoutingTable(Node node, int idLength, int k) {
         this.node = node;
 
-        List<Bucket> buckets = new ArrayList<>(size);
+        List<Bucket> buckets = new ArrayList<>(idLength);
 
-        for (int i = 0; i < size; i++)
-            buckets.add(new Bucket(node));
+        for (int i = 0; i < idLength; i++)
+            buckets.add(new Bucket(k, node));
 
         this.buckets = Collections.unmodifiableList(buckets);
     }
 
 
     /**
-     * Get nearest nodes
+     * Get nearest nodes to a node ID
      *
-     * @param   amount      amount of nodes
+     * @param   nodeId      node ID to search neighbours for
+     * @param   amount      amount of desired nearest nodes
+     *
      * @return  nearest nodes
      */
-    public List<NND> getNearestNodes(int amount) {
-        List<NND> nodes = new ArrayList<>(amount);
-
+    public List<NND> getNearestNodes(NodeId nodeId, int amount) {
+        List<NND> nearestNodes = new ArrayList<>(amount);
         int bucketsAmount = buckets.size();
 
         for (int i = bucketsAmount - 1; i >= 0; i--) {
-            if (nodes.size() == amount)
-                return nodes;
+            if (nearestNodes.size() >= amount)
+                return nearestNodes;
 
             Bucket bucket = buckets.get(i);
-            List<NND> nearestNodes = bucket.getNearestNodes(node.getInfo().getId(), amount);
-            nodes.addAll(nearestNodes.subList(0, amount - nodes.size()));
+            List<NND> bucketNearestNodes = bucket.getNearestNodes(nodeId, amount);
+            nearestNodes.addAll(bucketNearestNodes);
         }
 
-        return nodes;
+        return nearestNodes.subList(0, Math.min(nearestNodes.size(), amount));
     }
 
 
@@ -77,8 +80,8 @@ class RoutingTable {
      * @return  bucket
      */
     private Bucket getBucket(NND node) {
-        long xor = this.node.getInfo().getId() ^ node.getId();
-        int bucketNumber = Long.numberOfLeadingZeros(xor);
+        NodeId xor = this.node.getInfo().getId().xor(node.getId());
+        int bucketNumber = xor.getLeadingZeros();
         return buckets.get(bucketNumber);
     }
 
