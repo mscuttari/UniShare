@@ -1,6 +1,7 @@
 package it.unishare.common.connection.kademlia;
 
 import java.io.Serializable;
+import java.math.BigInteger;
 import java.net.InetAddress;
 import java.util.Calendar;
 
@@ -12,10 +13,10 @@ public class NND implements Serializable {
     private static final long serialVersionUID = -6360597132702310992L;
 
     /** ID */
-    private long id;
+    private NodeId id;
 
-    /** IP address */
-    private InetAddress ip;
+    /** Address */
+    private InetAddress address;
 
     /** Connection port */
     private int port;
@@ -27,13 +28,24 @@ public class NND implements Serializable {
     /**
      * Constructor
      *
-     * @param   id      ID
-     * @param   ip      IP address
-     * @param   port    connection port
+     * @param   address     address
+     * @param   port        connection port
      */
-    public NND(long id, InetAddress ip, int port) {
+    public NND(InetAddress address, int port) {
+        this(new NodeId(), address, port);
+    }
+
+
+    /**
+     * Constructor
+     *
+     * @param   id          ID
+     * @param   address     address
+     * @param   port        connection port
+     */
+    public NND(NodeId id, InetAddress address, int port) {
         this.id = id;
-        this.ip = ip;
+        this.address = address;
         this.port = port;
 
         this.lastSeen = Calendar.getInstance();
@@ -42,14 +54,14 @@ public class NND implements Serializable {
 
     @Override
     public int hashCode() {
-        return (int) id;
+        return id.hashCode();
     }
 
 
     @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof NND)) return false;
-        return id == ((NND) obj).id;
+        return id.equals(((NND) obj).id);
     }
 
 
@@ -58,28 +70,38 @@ public class NND implements Serializable {
      *
      * @return  ID
      */
-    public long getId() {
+    public NodeId getId() {
         return id;
     }
 
 
     /**
-     * Get IP address
+     * Get ID length
      *
-     * @return  IP address
+     * @return  ID length in bit
      */
-    public InetAddress getIp() {
-        return ip;
+    public int getIdLength() {
+        return id.getLength();
     }
 
 
     /**
-     * Set IP address
+     * Get address
      *
-     * @param   ip      IP address
+     * @return  address
      */
-    public void setIp(InetAddress ip) {
-        this.ip = ip;
+    public InetAddress getAddress() {
+        return address;
+    }
+
+
+    /**
+     * Set address
+     *
+     * @param   address     address
+     */
+    void setAddress(InetAddress address) {
+        this.address = address;
     }
 
 
@@ -98,7 +120,7 @@ public class NND implements Serializable {
      *
      * @param   port    UDP connection port
      */
-    public void setPort(int port) {
+    void setPort(int port) {
         this.port = port;
     }
 
@@ -118,8 +140,19 @@ public class NND implements Serializable {
      *
      * @param   lastSeen    last seen date
      */
-    public void setLastSeen(Calendar lastSeen) {
+    void setLastSeen(Calendar lastSeen) {
         this.lastSeen = lastSeen;
+    }
+
+
+    /**
+     * Get the distance between this and another node
+     *
+     * @param   node        node
+     * @return  distance between this node and the given node
+     */
+    public BigInteger distance(NND node) {
+        return id.distance(node.id);
     }
 
 }

@@ -1,13 +1,15 @@
 package it.unishare.common.connection.kademlia;
 
+import it.unishare.common.connection.kademlia.rpc.FindNode;
 import it.unishare.common.connection.kademlia.rpc.Message;
 import it.unishare.common.connection.kademlia.rpc.Ping;
 import it.unishare.common.utils.LogUtils;
+import sun.awt.Mutex;
 
 import java.io.*;
 import java.net.*;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public class Node {
 
@@ -15,11 +17,13 @@ public class Node {
     private DatagramSocket serverSocket;
     private Dispatcher dispatcher;
 
+    private Mutex mutex = new Mutex();
     private boolean connected = false;
 
     // Configuration
+    private static final int BUCKET_SIZE = 20;
+    private static final int SIMULTANEOUS_LOOKUPS = 3;
     private NND info;
-    private static final int simultaneousLookups = 3;
     private RoutingTable routingTable;
 
 
@@ -29,30 +33,8 @@ public class Node {
     public Node() throws Exception {
         this.serverSocket = new DatagramSocket();
         this.dispatcher = new Dispatcher();
-        this.info = new NND(generateId(), getServerIP(), serverSocket.getLocalPort());
-        this.routingTable = new RoutingTable(this, getIdLength());
-
-        startServer();
-    }
-
-
-    /**
-     * Generate ID for the node
-     *
-     * @return  unique ID
-     */
-    private static long generateId() {
-        return UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE;
-    }
-
-
-    /**
-     * Get the number of bits composing the ID
-     *
-     * @return  ID length in bit
-     */
-    private static int getIdLength() {
-        return 64;
+        this.info = new NND(getServerIP(), serverSocket.getLocalPort());
+        this.routingTable = new RoutingTable(this, info.getIdLength(), BUCKET_SIZE);
     }
 
 
@@ -63,6 +45,7 @@ public class Node {
      */
     private static InetAddress getServerIP() throws IOException {
         return InetAddress.getByName("127.0.0.1");
+
         /*
         URL whatIsMyIP = new URL("http://checkip.amazonaws.com");
         BufferedReader in = new BufferedReader(new InputStreamReader(whatIsMyIP.openStream()));
@@ -83,12 +66,12 @@ public class Node {
 
 
     /**
-     * Check whether the node is connected to the network
+     * Get message dispatcher
      *
-     * @return  true if connected; false otherwise
+     * @return  message dispatcher
      */
-    public boolean isConnected() {
-        return connected;
+    Dispatcher getDispatcher() {
+        return dispatcher;
     }
 
 
@@ -96,10 +79,12 @@ public class Node {
      * Start server
      */
     private void startServer() {
+        mutex.lock();
         connected = true;
 
         Runnable server = () -> {
             DatagramPacket packet = new DatagramPacket(new byte[16416], 16416);
+            log("Server started");
 
             while (connected) {
                 try {
@@ -130,8 +115,7 @@ public class Node {
 
         Thread thread = new Thread(server);
         thread.start();
-
-        log("Server started");
+        mutex.unlock();
     }
 
 
@@ -143,12 +127,21 @@ public class Node {
     private void elaborateMessage(Message message) {
         routingTable.addNode(message.getSource());
 
-        // Ping
+        // PING
         if (message instanceof Ping) {
             log("Ping request received from " + message.getSource().getId());
             Ping response = ((Ping) message).createResponse();
             dispatcher.sendMessage(response);
             log("Ping response sent to " + response.getDestination().getId());
+        }
+
+        // FIND_NODE
+        if (message instanceof FindNode) {
+            NodeId targetId = ((FindNode) message).getTargetId();
+            log("Lookup request received from " + message.getSource().getId() + " for " + targetId);
+            FindNode response = ((FindNode) message).createResponse();
+            response.setNearestNodes(routingTable.getNearestNodes(targetId, BUCKET_SIZE));
+            dispatcher.sendMessage(response);
         }
     }
 
@@ -156,10 +149,24 @@ public class Node {
     /**
      * Connect to the the Kademlia network and start the discovery process
      *
-     * @param   accessPoint     access point information
+     * @param   bootstrapNode       bootstrap node
      */
-    public void bootstrap(NND accessPoint) {
-        ping(accessPoint);
+    public void bootstrap(NND bootstrapNode) {
+        startServer();
+        mutex.lock();
+
+        if (!info.equals(bootstrapNode)) {
+            ping(bootstrapNode);
+
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    //findNode(bootstrapNode.getId());
+                }
+            }, 5000);
+        }
+
+        mutex.unlock();
     }
 
 
@@ -168,14 +175,14 @@ public class Node {
      *
      * @param   node    node to be pinged
      */
-    void ping(NND node) {
+    private void ping(NND node) {
         log("Pinging " + node.getId());
         Ping message = new Ping(getInfo(), node);
 
         dispatcher.sendMessage(message, new Dispatcher.MessageListener() {
             @Override
-            public void onSuccess() {
-                log("Ping response received from " + message.getDestination().getId());
+            public void onSuccess(Message response) {
+                log("Ping response received from " + response.getSource().getId());
                 routingTable.addNode(node);
             }
 
@@ -189,14 +196,38 @@ public class Node {
 
 
     /**
-     * Search key in the network
+     * Get the k nearest nodes to the target ID
      *
-     * @param   key     key
-     * @return  value associated to the key
+     * @param   targetId        ID of the searched node
      */
-    public String lookup(String key) {
-        List<NND> nearestNodes = routingTable.getNearestNodes(simultaneousLookups);
-        return null;
+    private void findNode(NodeId targetId) {
+        List<NND> nearestNodes = routingTable.getNearestNodes(targetId, SIMULTANEOUS_LOOKUPS);
+
+        nearestNodes.remove(info);
+        nearestNodes.forEach(node -> CompletableFuture.runAsync(() -> {
+            FindNode message = new FindNode(getInfo(), node, targetId);
+
+            dispatcher.sendMessage(message, new Dispatcher.MessageListener() {
+                @Override
+                public void onSuccess(Message response) {
+                    if (response instanceof FindNode) {
+                        FindNode findNodeResponse = (FindNode) response;
+                        List<NND> nearestNodes = findNodeResponse.getNearestNodes();
+
+                        boolean found = false;
+                        for (NND node : nearestNodes) {
+                            if (!info.equals(node))
+                                routingTable.addNode(node);
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure() {
+                    ping(node);
+                }
+            });
+        }));
     }
 
 
