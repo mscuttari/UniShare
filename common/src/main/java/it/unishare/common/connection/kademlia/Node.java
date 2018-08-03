@@ -3,6 +3,7 @@ package it.unishare.common.connection.kademlia;
 import it.unishare.common.connection.kademlia.rpc.FindNode;
 import it.unishare.common.connection.kademlia.rpc.Message;
 import it.unishare.common.connection.kademlia.rpc.Ping;
+import it.unishare.common.connection.kademlia.rpc.Store;
 import it.unishare.common.utils.LogUtils;
 import it.unishare.common.utils.Pair;
 import sun.awt.Mutex;
@@ -17,7 +18,6 @@ public class Node {
 
     // Connection
     private DatagramSocket serverSocket;
-    private Dispatcher dispatcher;
 
     private Mutex mutex = new Mutex();
     private boolean connected = false;
@@ -25,8 +25,12 @@ public class Node {
     // Configuration
     private static final int BUCKET_SIZE = 20;
     private static final int SIMULTANEOUS_LOOKUPS = 3;
-    private NND info;
-    private RoutingTable routingTable;
+
+    // Data
+    private final Dispatcher dispatcher;
+    private final NND info;
+    private final RoutingTable routingTable;
+    private final Memory memory;
 
 
     /**
@@ -37,6 +41,7 @@ public class Node {
         this.dispatcher = new Dispatcher();
         this.info = new NND(getServerIP(), serverSocket.getLocalPort());
         this.routingTable = new RoutingTable(this, info.getIdLength(), BUCKET_SIZE);
+        this.memory = new Memory(this);
     }
 
 
@@ -68,12 +73,22 @@ public class Node {
 
 
     /**
-     * Get message dispatcher
+     * Get the message dispatcher
      *
      * @return  message dispatcher
      */
     Dispatcher getDispatcher() {
         return dispatcher;
+    }
+
+
+    /**
+     * Get the routing table
+     *
+     * @return  routing table
+     */
+    RoutingTable getRoutingTable() {
+        return routingTable;
     }
 
 
@@ -145,6 +160,15 @@ public class Node {
             response.setNearestNodes(routingTable.getNearestNodes(targetId, BUCKET_SIZE));
             dispatcher.sendMessage(response);
         }
+
+        // STORE
+        if (message instanceof Store) {
+            KademliaFile data = ((Store) message).getData();
+            log("Store request received from " + message.getSource().getId() + " for " + data.getKey());
+            memory.store(data);
+            Store response = ((Store) message).createResponse();
+            dispatcher.sendMessage(response);
+        }
     }
 
 
@@ -157,15 +181,22 @@ public class Node {
         startServer();
         mutex.lock();
 
-        if (!info.equals(bootstrapNode)) {
-            ping(bootstrapNode);
+        if (!getInfo().equals(bootstrapNode)) {
+            Ping message = new Ping(getInfo(), bootstrapNode);
 
-            new Timer().schedule(new TimerTask() {
+            dispatcher.sendMessage(message, new Dispatcher.MessageListener() {
                 @Override
-                public void run() {
-                    findNode(bootstrapNode.getId());
+                public void onSuccess(Message response) {
+                    log("Ping response received from " + response.getSource().getId());
+                    routingTable.addNode(response.getSource());
+                    lookup(bootstrapNode.getId());
                 }
-            }, 5000);
+
+                @Override
+                public void onFailure() {
+                    log("Can't ping " + message.getDestination().getId());
+                }
+            });
         }
 
         mutex.unlock();
@@ -177,7 +208,7 @@ public class Node {
      *
      * @param   node    node to be pinged
      */
-    private void ping(NND node) {
+    void ping(NND node) {
         log("Pinging " + node.getId());
         Ping message = new Ping(getInfo(), node);
 
@@ -201,15 +232,16 @@ public class Node {
      * Node lookup
      *
      * @param   targetId        target node ID
+     * @return  nodes close to the target
      */
-    private void findNode(NodeId targetId) {
+    List<NND> lookup(NodeId targetId) {
         // Get the first alpha nodes to send the first requests
         List<NND> nearestNodes = routingTable.getNearestNodes(targetId, SIMULTANEOUS_LOOKUPS);
-        if (nearestNodes.size() == 0) return;
+        if (nearestNodes.size() == 0) return new ArrayList<>();
         log("Starting lookup nodes: " + nearestNodes);
 
         // Send asynchronous requests
-        List<NND> encounteredNodes = new ArrayList<>();
+        List<NND> queriedNodes = new ArrayList<>();
 
         nearestNodes.forEach(node -> CompletableFuture.runAsync(() -> {
             FindNode message = new FindNode(getInfo(), node, targetId);
@@ -217,6 +249,11 @@ public class Node {
             dispatcher.sendMessage(message, new Dispatcher.MessageListener() {
                 @Override
                 public void onSuccess(Message response) {
+                    // Add the node to the queried ones
+                    queriedNodes.add(node);
+                    routingTable.addNode(response.getSource());
+
+                    // Get query groups
                     assert response instanceof FindNode;
 
                     List<NND> nearestNodes = new ArrayList<>(((FindNode) response).getNearestNodes());
@@ -227,7 +264,7 @@ public class Node {
                     List<NND> primaryGroup = lookupGroups.first;
                     List<NND> secondaryGroup = lookupGroups.second;
 
-                    lookup(encounteredNodes, primaryGroup, secondaryGroup, targetId);
+                    recursiveLookup(queriedNodes, primaryGroup, secondaryGroup, targetId);
                 }
 
                 @Override
@@ -236,6 +273,8 @@ public class Node {
                 }
             });
         }));
+
+        return queriedNodes;
     }
 
 
@@ -247,7 +286,7 @@ public class Node {
      * @param   secondaryGroup      secondary group
      * @param   targetId            target node ID
      */
-    private void lookup(List<NND> queriedNodes, List<NND> primaryGroup, List<NND> secondaryGroup, NodeId targetId) {
+    private void recursiveLookup(List<NND> queriedNodes, List<NND> primaryGroup, List<NND> secondaryGroup, NodeId targetId) {
         primaryGroup.forEach(recipient -> CompletableFuture.runAsync(() -> {
             if (queriedNodes.contains(recipient))
                 return;
@@ -257,6 +296,9 @@ public class Node {
             dispatcher.sendMessage(message, new Dispatcher.MessageListener() {
                 @Override
                 public void onSuccess(Message response) {
+                    if (queriedNodes.contains(recipient))
+                        return;
+
                     // Add the node to the queried ones
                     queriedNodes.add(recipient);
                     routingTable.addNode(response.getSource());
@@ -288,10 +330,10 @@ public class Node {
                     }
 
                     if (shouldContinueWithPrimaryGroup) {
-                        lookup(queriedNodes, nextPrimaryGroup, nextSecondaryGroup, targetId);
+                        recursiveLookup(queriedNodes, nextPrimaryGroup, nextSecondaryGroup, targetId);
                     } else {
                         // There is no new nearer node
-                        lookup(queriedNodes, secondaryGroup, new ArrayList<>(), targetId);
+                        recursiveLookup(queriedNodes, secondaryGroup, new ArrayList<>(), targetId);
                     }
                 }
 
@@ -330,6 +372,26 @@ public class Node {
         }
 
         return new Pair<>(primaryGroup, secondaryGroup);
+    }
+
+
+    /**
+     * Store data in this node
+     *
+     * @param   data        data to be stored
+     */
+    public void storeData(KademliaFile data) {
+        memory.store(data, BUCKET_SIZE);
+    }
+
+
+    /**
+     * Delete data from this node
+     *
+     * @param   key         key the data is associated to
+     */
+    public void deleteData(String key) {
+        memory.delete(key);
     }
 
 
