@@ -1,6 +1,7 @@
 package it.unishare.client.controllers;
 
 import it.unishare.client.connection.server.RmiClient;
+import it.unishare.common.connection.kademlia.KademliaFile;
 import it.unishare.common.connection.kademlia.NND;
 import it.unishare.common.connection.kademlia.Node;
 import javafx.fxml.FXML;
@@ -25,10 +26,24 @@ public class MainController extends AbstractController implements Initializable 
             RmiClient rmiClient = new RmiClient("rmi://127.0.0.1/unishare");
             NND dhtAccessPoint = rmiClient.getKademliaAccessPointInfo();
 
-            Node node = new Node();
-            node.bootstrap(dhtAccessPoint);
+            /*Node<String> node1 = new Node<>();
+            node1.bootstrap(dhtAccessPoint);
 
-            System.out.println("DHT network joined");
+            Node<String> node2 = new Node<>();
+            node2.bootstrap(dhtAccessPoint);*/
+
+            Node node3 = new Node();
+            node3.bootstrap(dhtAccessPoint);
+
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    KademliaFile file = new KademliaFile("prova", node3.getInfo());
+                    node3.storeData(file);
+                }
+            }, 5000);
+
+
 
         } catch (Exception e) {
             e.printStackTrace();

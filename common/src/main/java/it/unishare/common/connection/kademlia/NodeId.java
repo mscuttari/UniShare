@@ -1,10 +1,9 @@
 package it.unishare.common.connection.kademlia;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -32,7 +31,7 @@ public class NodeId implements Serializable {
      */
     private NodeId(byte[] bytes) {
         if (bytes.length != ID_LENGTH / 8) {
-            throw new IllegalArgumentException("Data need to be " + (ID_LENGTH / 8) + " characters long. Actual length: '" + new String(bytes) + "'");
+            throw new IllegalArgumentException("Data need to be " + (ID_LENGTH / 8) + " characters long");
         }
 
         this.keyBytes = bytes;
@@ -45,7 +44,18 @@ public class NodeId implements Serializable {
      * @param   data    string data
      */
     public NodeId(String data) {
-        this(data.getBytes());
+        try {
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
+            messageDigest.update(data.getBytes());
+            this.keyBytes = messageDigest.digest();
+
+        } catch (NoSuchAlgorithmException e) {
+            if (data.getBytes().length != ID_LENGTH / 8) {
+                throw new IllegalArgumentException("Data need to be " + (ID_LENGTH / 8) + " characters long");
+            }
+
+            this.keyBytes = data.getBytes();
+        }
     }
 
 
