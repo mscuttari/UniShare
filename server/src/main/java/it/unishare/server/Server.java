@@ -7,15 +7,16 @@ import it.unishare.common.exceptions.*;
 import it.unishare.common.utils.LogUtils;
 import it.unishare.common.models.User;
 
+import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -27,6 +28,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Properties;
 import java.util.Random;
 import java.util.regex.Pattern;
 
@@ -183,6 +185,9 @@ public class Server extends UnicastRemoteObject implements RmiServerInterface {
         newUser.setPassword(null);
         newUser.setSalt(null);
 
+        // Send confirmation email
+        sendSignupConfirmationEmail(user);
+
         return newUser;
     }
 
@@ -260,6 +265,72 @@ public class Server extends UnicastRemoteObject implements RmiServerInterface {
         }
 
         return salt.toString();
+    }
+
+
+    /**
+     * Send signup confirmation email
+     *
+     * @param   user    signed up user
+     */
+    private void sendSignupConfirmationEmail(User user) {
+        Properties emailSecrets = new Properties();
+
+        try {
+            InputStream inputStream = getClass().getResourceAsStream("/values/mail.properties");
+            emailSecrets.load(inputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        final String username = emailSecrets.getProperty("username");
+        final String password = emailSecrets.getProperty("password");
+        final String host = "smtp.googlemail.com";
+        final String port = "465";
+        final String SSL_FACTORY = "javax.net.ssl.SSLSocketFactory";
+        final String from = emailSecrets.getProperty("sender");
+        final String to = user.getEmail();
+        final String subject = "UniShare: signup confirmation";
+        final String body = "Hi " +user.getFirstName() + " " + user.getLastName() + "!\n" +
+                "Thanks for signing up for UniShare.\n\n" +
+                "Here are your credentials:\n" +
+                "Username: " + user.getEmail() + "\n" +
+                "Password: " + user.getPassword() + "\n\n" +
+                "Have a nice day!";
+
+        Properties properties = new Properties();
+        properties.put("mail.smtp.host", host);
+        properties.put("mail.smtp.auth", "true");
+        properties.put("mail.debug", "true");
+        properties.put("mail.smtp.port", port);
+        properties.put("mail.smtp.socketFactory.port", port);
+        properties.put("mail.smtp.socketFactory.class", SSL_FACTORY);
+        properties.put("mail.smtp.socketFactory.fallback", "false");
+        LogUtils.e(TAG, username);
+        LogUtils.e(TAG, password);
+        LogUtils.e(TAG, from);
+
+        Session session = Session.getDefaultInstance(properties,
+                new Authenticator() {
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(username, password);
+                    }
+                });
+
+        try {
+            MimeMessage message = new MimeMessage(session);
+
+            message.setFrom(new InternetAddress(from));
+            message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+            message.setSubject(subject);
+            message.setText(body);
+
+            Transport.send(message);
+
+        } catch (MessagingException mex) {
+            mex.printStackTrace();
+        }
     }
 
 
