@@ -1,0 +1,3 @@
+# Mail account
+# Create a file named mail.properties containing the "username", "password" and "sender" properties
+mail.properties
