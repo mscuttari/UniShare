@@ -213,7 +213,7 @@ public class Server extends UnicastRemoteObject implements RmiServerInterface {
      */
     private static boolean isPasswordValid(String password) {
         final int PASSWORD_MIN_LENGTH = 8;
-        return password != null && password.length() > PASSWORD_MIN_LENGTH;
+        return password != null && password.length() >= PASSWORD_MIN_LENGTH;
     }
 
 

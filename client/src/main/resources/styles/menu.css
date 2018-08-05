@@ -154,6 +154,15 @@
     -fx-alignment: center;
 }
 
+.lbl-login {
+    -fx-text-fill: #ffbe2c;
+}
+
+.lbl-login:hover {
+    -fx-text-fill: #c3c3c3;
+    -fx-cursor: hand;
+}
+
 .lbl-user {
     -fx-text-fill: #ffbe2c;
     -fx-padding: 0 0 0 10;
@@ -170,6 +179,7 @@
     -fx-cursor: hand;
     -fx-content-display: right;
     -fx-graphic-text-gap: 10;
+    -fx-padding: 7 10 0 0;
     -fx-graphic: url("../icons/logout_white.png");
 }
 

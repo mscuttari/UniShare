@@ -1,77 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            stylesheets="@../styles/login.css"
-            styleClass="background">
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="it.unishare.client.controllers.LoginController"
+      stylesheets="@../styles/login.css"
+      styleClass="box-login">
 
-    <VBox alignment="CENTER"
-          fillWidth="false"
-          spacing="15.0"
-          AnchorPane.topAnchor="0.0"
-          AnchorPane.bottomAnchor="0.0"
-          AnchorPane.leftAnchor="0.0"
-          AnchorPane.rightAnchor="0.0">
+    <TextField fx:id="txtEmail"
+               styleClass="email"
+               promptText="Email" />
 
-        <!-- Logo -->
-        <ImageView styleClass="logo"
-                   fitWidth="280.0"
-                   fitHeight="70.0"
-                   pickOnBounds="true"
-                   preserveRatio="true" />
+    <PasswordField fx:id="txtPassword"
+                   styleClass="password"
+                   promptText="Password" />
 
-        <!-- Credentials -->
-        <AnchorPane>
-            <VBox styleClass="box-login"
-                  AnchorPane.topAnchor="0.0"
-                  AnchorPane.bottomAnchor="0.0"
-                  AnchorPane.leftAnchor="0.0"
-                  AnchorPane.rightAnchor="0.0">
+    <Button fx:id="btnLogin"
+            styleClass="btn-login"
+            text="Login"
+            mnemonicParsing="false"
+            maxWidth="1.7976931348623157E308"
+            HBox.hgrow="ALWAYS" />
 
-                <TextField fx:id="txtEmail"
-                           styleClass="email"
-                           promptText="Email" />
-
-                <PasswordField fx:id="txtPassword"
-                               styleClass="password"
-                               promptText="Password" />
-
-                <Button fx:id="btnLogin"
-                        styleClass="btn-login"
-                        text="Login"
-                        mnemonicParsing="false"
-                        maxWidth="1.7976931348623157E308"
-                        HBox.hgrow="ALWAYS" />
-            </VBox>
-
-            <StackPane AnchorPane.topAnchor="-14.5"
-                       AnchorPane.leftAnchor="0.0"
-                       AnchorPane.rightAnchor="0.0">
-
-                <ImageView styleClass="login-top-bar"
-                           fitWidth="271.0"
-                           fitHeight="61.0"
-                           pickOnBounds="true"
-                           preserveRatio="true" />
-
-                <Label text="Login"
-                       styleClass="login-txt"
-                       AnchorPane.topAnchor="0.0"
-                       AnchorPane.bottomAnchor="0.0"
-                       AnchorPane.leftAnchor="0.0"
-                       AnchorPane.rightAnchor="0.0" />
-            </StackPane>
-
-        </AnchorPane>
-
-        <!-- Error message -->
-        <Label fx:id="lblError"
-               styleClass="error"
-               alignment="CENTER" />
-    </VBox>
-
-</AnchorPane>
+</VBox>
