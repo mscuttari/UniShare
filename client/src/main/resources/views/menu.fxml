@@ -45,7 +45,7 @@
                        minHeight="30.0"
                        pickOnBounds="false">
 
-                <BorderPane>
+                <BorderPane fx:id="boxUser">
                     <center>
                         <Label fx:id="lblUser"
                                styleClass="lbl-user"
@@ -60,8 +60,18 @@
                     </right>
                 </BorderPane>
 
-                <Label fx:id="lblLogin"
-                       styleClass="lbl-login" />
+                <HBox fx:id="boxLogin"
+                        alignment="CENTER">
+                    <Label fx:id="lblLogin"
+                           styleClass="lbl-login" />
+
+                    <Label styleClass="lbl-separator"
+                           text="|" />
+
+                    <Label fx:id="lblSignup"
+                           styleClass="lbl-signup"
+                           text="Signup" />
+                </HBox>
 
             </StackPane>
     </bottom>

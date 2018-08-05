@@ -11,4 +11,7 @@ dependencies {
     // https://mvnrepository.com/artifact/org.controlsfx/controlsfx
     compile group: 'org.controlsfx', name: 'controlsfx', version: '8.40.14'
 
+    // https://mvnrepository.com/artifact/de.jensd/fontawesomefx
+    compile group: 'de.jensd', name: 'fontawesomefx', version: '8.9'
+
 }

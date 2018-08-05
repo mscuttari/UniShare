@@ -163,6 +163,20 @@
     -fx-cursor: hand;
 }
 
+.lbl-separator {
+    -fx-padding: 0 10 0 10;
+    -fx-text-fill: #c3c3c3;
+}
+
+.lbl-signup {
+    -fx-text-fill: #ffbe2c;
+}
+
+.lbl-signup:hover {
+    -fx-text-fill: #c3c3c3;
+    -fx-cursor: hand;
+}
+
 .lbl-user {
     -fx-text-fill: #ffbe2c;
     -fx-padding: 0 0 0 10;
