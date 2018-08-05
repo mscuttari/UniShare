@@ -2,7 +2,7 @@
     -fx-background-color: #fff;
 }
 
-.box-login {
+.box-signup {
     -fx-min-width: 300;
     -fx-min-height: 130;
     -fx-padding: 10 10 10 10;
@@ -12,14 +12,16 @@
     -fx-font-size: 14;
 }
 
-.login-txt {
+.signup-txt {
     -fx-text-fill: #d8d8d8;
     -fx-font-size: 16px;
     -fx-text-alignment: center;
 }
 
 .email,
-.password {
+.password,
+.first-name,
+.last-name {
     -fx-background-color: transparent;
     -fx-border-color: #e8e8e8;
     -fx-border-width: 0 0 1 0;
@@ -33,7 +35,9 @@
 }
 
 .email:focused,
-.password:focused {
+.password:focused,
+.first-name:focused,
+.last-name:focused {
     -fx-prompt-text-fill: transparent;
 }
 
@@ -52,7 +56,15 @@
     -glyph-name: KEY;
 }
 
-.btn-login {
+.first-name-icon {
+    -glyph-name: USER;
+}
+
+.last-name-icon {
+    -glyph-name: USER;
+}
+
+.btn-signup {
     -fx-text-fill: #fff;
     -fx-background-color: #cbde70;
     -fx-border-color: #bed452;

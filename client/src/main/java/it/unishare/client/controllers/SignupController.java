@@ -1,9 +1,7 @@
 package it.unishare.client.controllers;
 
 import it.unishare.client.connection.ConnectionManager;
-import it.unishare.common.exceptions.MissingFieldException;
-import it.unishare.common.exceptions.NotFoundException;
-import it.unishare.common.exceptions.WrongPasswordException;
+import it.unishare.common.exceptions.*;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -17,11 +15,13 @@ import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.ResourceBundle;
 
-public class LoginController extends AbstractController implements Initializable {
+public class SignupController extends AbstractController implements Initializable {
 
     @FXML private TextField txtEmail;
     @FXML private PasswordField txtPassword;
-    @FXML private Button btnLogin;
+    @FXML private TextField txtFirstName;
+    @FXML private TextField txtLastName;
+    @FXML private Button btnSignup;
 
     private ResourceBundle resources;
 
@@ -30,45 +30,52 @@ public class LoginController extends AbstractController implements Initializable
     public void initialize(URL location, ResourceBundle resources) {
         this.resources = resources;
 
-        // Login button
-        btnLogin.setOnAction(event -> login());
+        // Signup button
+        btnSignup.setOnAction(event -> signup());
 
         // Submit form on enter key press
         EventHandler<KeyEvent> keyPressEvent = event -> {
             if (event.getCode() == KeyCode.ENTER)
-                login();
+                signup();
         };
 
         txtEmail.setOnKeyPressed(keyPressEvent);
         txtPassword.setOnKeyPressed(keyPressEvent);
-        btnLogin.setOnKeyPressed(keyPressEvent);
+        txtFirstName.setOnKeyPressed(keyPressEvent);
+        txtLastName.setOnKeyPressed(keyPressEvent);
+        btnSignup.setOnKeyPressed(keyPressEvent);
     }
 
 
     /**
      * Login
      */
-    private void login() {
+    private void signup() {
         String email = txtEmail.getText().trim();
         String password = txtPassword.getText().trim();
+        String firstName = txtFirstName.getText().trim();
+        String lastName = txtLastName.getText().trim();
 
         try {
-            ConnectionManager.getInstance().login(email, password);
+            ConnectionManager.getInstance().signup(email, password, firstName, lastName);
 
         } catch (RemoteException e) {
-            showErrorDialog(resources.getString("login"), resources.getString("connection_error"));
+            showErrorDialog(resources.getString("signup"), resources.getString("connection_error"));
 
         } catch (MissingFieldException e) {
             showErrorDialog(
-                    resources.getString("login"),
+                    resources.getString("signup"),
                     resources.getString("missing_field") + ": " + resources.getString(e.getMissingField().toLowerCase())
             );
 
-        } catch (NotFoundException e) {
-            showErrorDialog(resources.getString("login"), resources.getString("user_not_found"));
+        } catch (InvalidDataException e) {
+            showErrorDialog(
+                    resources.getString("signup"),
+                    resources.getString("invalid_data") + ": " + resources.getString(e.getInvalidField().toLowerCase())
+            );
 
-        } catch (WrongPasswordException e) {
-            showErrorDialog(resources.getString("login"), resources.getString("wrong_password"));
+        } catch (EmailAlreadyInUseException e) {
+            showErrorDialog(resources.getString("signup"), resources.getString("email_already_in_use"));
         }
     }
 

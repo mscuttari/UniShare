@@ -47,11 +47,11 @@ public class User implements Serializable {
      * @param   lastName    last name
      */
     public User(String email, String password, String salt, String firstName, String lastName) {
-        this.email = email;
-        this.password = password;
-        this.salt = salt;
-        this.firstName = firstName;
-        this.lastName = lastName;
+        setEmail(email);
+        setPassword(password);
+        setSalt(salt);
+        setFirstName(firstName);
+        setLastName(lastName);
     }
 
 
@@ -60,7 +60,7 @@ public class User implements Serializable {
     }
 
     public void setEmail(String email) {
-        this.email = email;
+        this.email = email == null || email.isEmpty() ? null : email;
     }
 
     public String getPassword() {
@@ -68,7 +68,7 @@ public class User implements Serializable {
     }
 
     public void setPassword(String password) {
-        this.password = password;
+        this.password = password == null || password.isEmpty() ? null : password;
     }
 
     public String getSalt() {
@@ -76,7 +76,7 @@ public class User implements Serializable {
     }
 
     public void setSalt(String salt) {
-        this.salt = salt;
+        this.salt = salt == null || salt.isEmpty() ? null : salt;
     }
 
     public String getFirstName() {
@@ -84,7 +84,7 @@ public class User implements Serializable {
     }
 
     public void setFirstName(String firstName) {
-        this.firstName = firstName;
+        this.firstName = firstName == null || firstName.isEmpty() ? null : firstName;
     }
 
     public String getLastName() {
@@ -92,7 +92,7 @@ public class User implements Serializable {
     }
 
     public void setLastName(String lastName) {
-        this.lastName = lastName;
+        this.lastName = lastName == null || lastName.isEmpty() ? null : lastName;
     }
 
 }

@@ -8,9 +8,9 @@
 
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
-      fx:controller="it.unishare.client.controllers.LoginController"
-      stylesheets="@../styles/login.css"
-      styleClass="box-login">
+      fx:controller="it.unishare.client.controllers.SignupController"
+      stylesheets="@../styles/signup.css"
+      styleClass="box-signup">
 
     <CustomTextField fx:id="txtEmail"
                      styleClass="email"
@@ -36,9 +36,34 @@
         </left>
     </CustomPasswordField>
 
-    <Button fx:id="btnLogin"
-            styleClass="btn-login"
-            text="%login"
+    <CustomTextField fx:id="txtFirstName"
+                     styleClass="first-name"
+                     promptText="%first_name">
+        <left>
+            <Label>
+                <graphic>
+                    <FontAwesomeIconView styleClass="first-name-icon"/>
+                </graphic>
+            </Label>
+        </left>
+    </CustomTextField>
+
+    <CustomTextField fx:id="txtLastName"
+                     styleClass="last-name"
+                     promptText="%last_name">
+        <left>
+            <Label>
+                <graphic>
+                    <FontAwesomeIconView styleClass="last-name-icon"/>
+                </graphic>
+            </Label>
+        </left>
+    </CustomTextField>
+
+
+    <Button fx:id="btnSignup"
+            styleClass="btn-signup"
+            text="%signup"
             mnemonicParsing="false"
             maxWidth="1.7976931348623157E308"
             HBox.hgrow="ALWAYS" />
