@@ -40,19 +40,30 @@
     </center>
 
     <bottom>
-        <HBox styleClass="box-user"
-              maxHeight="30.0"
-              minHeight="30.0">
+            <StackPane styleClass="box-user"
+                       maxHeight="30.0"
+                       minHeight="30.0"
+                       pickOnBounds="false">
 
-            <Label fx:id="lblUser"
-                   styleClass="lbl-user"
-                   maxWidth="1.7976931348623157E308"
-                   HBox.hgrow="ALWAYS" />
+                <BorderPane>
+                    <center>
+                        <Label fx:id="lblUser"
+                               styleClass="lbl-user"
+                               maxWidth="1.7976931348623157E308"
+                               HBox.hgrow="ALWAYS" />
+                    </center>
 
-            <Button fx:id="btnLogout"
-                    styleClass="btn-logout"
-                    mnemonicParsing="false" />
-        </HBox>
+                    <right>
+                        <Button fx:id="btnLogout"
+                                styleClass="btn-logout"
+                                mnemonicParsing="false"/>
+                    </right>
+                </BorderPane>
+
+                <Label fx:id="lblLogin"
+                       styleClass="lbl-login" />
+
+            </StackPane>
     </bottom>
 
 </BorderPane>

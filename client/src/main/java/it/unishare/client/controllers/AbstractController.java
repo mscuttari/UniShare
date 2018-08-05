@@ -7,6 +7,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
+import org.controlsfx.control.PopOver;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -104,7 +106,7 @@ public abstract class AbstractController {
 
 
     /**
-     * Set top view of a BorderPane
+     * Set top view of a {@link BorderPane}
      *
      * @param   borderPane      {@link BorderPane} to be populated
      * @param   fileName        FXML file name to be loaded
@@ -115,7 +117,7 @@ public abstract class AbstractController {
 
 
     /**
-     * Set top view of a BorderPane
+     * Set top view of a {@link BorderPane}
      *
      * @param   borderPane      {@link BorderPane} to be populated
      * @param   fileName        FXML file name to be loaded
@@ -133,7 +135,7 @@ public abstract class AbstractController {
 
 
     /**
-     * Set center view of a BorderPane
+     * Set center view of a {@link BorderPane}
      *
      * @param   borderPane      {@link BorderPane} to be populated
      * @param   fileName        FXML file name to be loaded
@@ -144,7 +146,7 @@ public abstract class AbstractController {
 
 
     /**
-     * Set center view of a BorderPane
+     * Set center view of a {@link BorderPane}
      *
      * @param   borderPane      {@link BorderPane} to be populated
      * @param   fileName        FXML file name to be loaded
@@ -162,7 +164,7 @@ public abstract class AbstractController {
 
 
     /**
-     * Set bottom view of a BorderPane
+     * Set bottom view of a {@link BorderPane}
      *
      * @param   borderPane      {@link BorderPane} to be populated
      * @param   fileName        FXML file name to be loaded
@@ -173,7 +175,7 @@ public abstract class AbstractController {
 
 
     /**
-     * Set bottom view of a BorderPane
+     * Set bottom view of a {@link BorderPane}
      *
      * @param   borderPane      {@link BorderPane} to be populated
      * @param   fileName        FXML file name to be loaded
@@ -191,7 +193,7 @@ public abstract class AbstractController {
 
 
     /**
-     * Set left view of a BorderPane
+     * Set left view of a {@link BorderPane}
      *
      * @param   borderPane      {@link BorderPane} to be populated
      * @param   fileName        FXML file name to be loaded
@@ -202,7 +204,7 @@ public abstract class AbstractController {
 
 
     /**
-     * Set left view of a BorderPane
+     * Set left view of a {@link BorderPane}
      *
      * @param   borderPane      {@link BorderPane} to be populated
      * @param   fileName        FXML file name to be loaded
@@ -220,7 +222,7 @@ public abstract class AbstractController {
 
 
     /**
-     * Set right view of a BorderPane
+     * Set right view of a {@link BorderPane}
      *
      * @param   borderPane      {@link BorderPane} to be populated
      * @param   fileName        FXML file name to be loaded
@@ -231,7 +233,7 @@ public abstract class AbstractController {
 
 
     /**
-     * Set right view of a BorderPane
+     * Set right view of a {@link BorderPane}
      *
      * @param   borderPane      {@link BorderPane} to be populated
      * @param   fileName        FXML file name to be loaded
@@ -245,6 +247,40 @@ public abstract class AbstractController {
             LogUtils.e(this.getClass().getSimpleName(), e.getMessage());
             e.printStackTrace();
         }
+    }
+
+
+    /**
+     * Create {@link PopOver} containing the specified FXML view
+     *
+     * @param   fileName    FXML file name to be loaded
+     * @return  {@link PopOver} instance
+     */
+    protected PopOver createPopOver(String fileName) {
+        return createPopOver(fileName, null);
+    }
+
+
+    /**
+     * Create {@link PopOver} containing the specified FXML view
+     *
+     * @param   fileName    FXML file name to be loaded
+     * @param   resources   {@link ResourceBundle} containing the resources
+     *
+     * @return  {@link PopOver} instance
+     */
+    protected PopOver createPopOver(String fileName, ResourceBundle resources) {
+        PopOver popOver = new PopOver();
+
+        try {
+            URL url = this.getClass().getResource(getViewPath(fileName));
+            Pane pane = FXMLLoader.load(url, resources);
+            popOver.setContentNode(pane);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return popOver;
     }
 
 

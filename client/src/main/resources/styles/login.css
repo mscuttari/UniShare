@@ -2,28 +2,14 @@
     -fx-background-color: #fff;
 }
 
-.background {
-    -fx-background-color: #787878;
-    -fx-background-size: 100% 100%;
-    -fx-background-position: top;
-    -fx-background-repeat: no-repeat;
-}
-
 .box-login {
-    -fx-padding: 50 10 10 10;
+    -fx-min-width: 300;
+    -fx-min-height: 130;
+    -fx-padding: 10 10 10 10;
     -fx-spacing: 15;
+    -fx-alignment: center;
     -fx-background-color: rgba(255, 255, 255, 1);
-    -fx-border-color: #d8d8d8;
-    -fx-effect: dropshadow(two-pass-box, rgba(0, 0, 0, 0.69), 5, 0.1, 2, 2);
     -fx-font-size: 14;
-}
-
-.logo {
-    -fx-image: url("../images/logo.png");
-}
-
-.login-top-bar {
-    -fx-image: url("../images/login_bar_black.png");
 }
 
 .login-txt {

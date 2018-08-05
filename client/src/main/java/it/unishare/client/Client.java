@@ -48,7 +48,7 @@ public class Client extends Application {
             primaryStage.setTitle("UniShare");
             primaryStage.getIcons().add(new Image("/images/documents.png"));
             primaryStage.setMaximized(true);
-            //primaryStage.show();
+            primaryStage.show();
         } catch (Exception e) {
             e.printStackTrace();
         }
