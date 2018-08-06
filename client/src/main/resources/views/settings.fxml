@@ -14,11 +14,12 @@
         <URL value="@../styles/settings.css" />
     </stylesheets>
 
-    <VBox AnchorPane.topAnchor="0.0"
+    <VBox styleClass="box-section"
+          spacing="10"
+          AnchorPane.topAnchor="0.0"
           AnchorPane.bottomAnchor="0.0"
           AnchorPane.leftAnchor="0.0"
-          AnchorPane.rightAnchor="0.0"
-          spacing="10">
+          AnchorPane.rightAnchor="0.0">
 
         <!-- Data path -->
         <VBox spacing="5">

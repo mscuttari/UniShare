@@ -8,9 +8,10 @@ public class KademliaFile implements Serializable {
 
     private static final long serialVersionUID = 802256779636121461L;
 
-    private String clearKey;
     private NodeId key;
     private NND owner;
+
+    private KademliaFileData data;
 
 
     /**
@@ -19,20 +20,10 @@ public class KademliaFile implements Serializable {
      * @param   key     key
      * @param   owner   owner of the data
      */
-    public KademliaFile(String key, NND owner) {
-        this.clearKey = key;
+    public KademliaFile(String key, NND owner, KademliaFileData data) {
         this.key = new NodeId(key);
         this.owner = owner;
-    }
-
-
-    /**
-     * Get clear key
-     *
-     * @return  clear key
-     */
-    public String getClearKey() {
-        return clearKey;
+        this.data = data;
     }
 
 
@@ -53,6 +44,16 @@ public class KademliaFile implements Serializable {
      */
     public NND getOwner() {
         return owner;
+    }
+
+
+    /**
+     * Get file data
+     *
+     * @return  file data
+     */
+    public KademliaFileData getData() {
+        return data;
     }
 
 }
