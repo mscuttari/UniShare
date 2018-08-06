@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="it.unishare.client.controllers.SettingsController"
+            styleClass="root">
+
+    <stylesheets>
+        <URL value="@../styles/default.css" />
+        <URL value="@../styles/settings.css" />
+    </stylesheets>
+
+    <VBox AnchorPane.topAnchor="0.0"
+          AnchorPane.bottomAnchor="0.0"
+          AnchorPane.leftAnchor="0.0"
+          AnchorPane.rightAnchor="0.0"
+          spacing="10">
+
+        <!-- Data path -->
+        <VBox spacing="5">
+            <Label text="%data_path" />
+
+            <HBox spacing="10">
+                <TextField fx:id="txtDataPath"
+                           maxWidth="1.7976931348623157E308"
+                           HBox.hgrow="ALWAYS"
+                           editable="false" />
+
+                <Button fx:id="btnDirectorySelection"
+                        text="%browse" />
+            </HBox>
+        </VBox>
+
+    </VBox>
+
+</AnchorPane>

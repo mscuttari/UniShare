@@ -15,6 +15,8 @@ import java.util.ResourceBundle;
 
 public class MenuController extends AbstractController implements Initializable {
 
+    @FXML private BorderPane rootPane;
+
     @FXML private SidebarButton btnSearch;
     @FXML private SidebarButton btnMyFiles;
     @FXML private SidebarButton btnSettings;
@@ -28,6 +30,7 @@ public class MenuController extends AbstractController implements Initializable 
     @FXML private Button btnLogout;
 
     private ResourceBundle resources;
+    private String currentView;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -96,7 +99,30 @@ public class MenuController extends AbstractController implements Initializable 
      */
     @FXML
     private void settings() {
+        setView("settings");
+    }
 
+
+    /**
+     * Get main application {@link BorderPane}
+     *
+     * @return  BorderPane
+     */
+    private BorderPane getParentPane() {
+        return (BorderPane) rootPane.getParent();
+    }
+
+
+    /**
+     * Set view
+     *
+     * @param   viewName    FXML file name to be loaded
+     */
+    private void setView(String viewName) {
+        if (currentView == null || !currentView.equals(viewName)) {
+            currentView = viewName;
+            borderPaneSetCenter(getParentPane(), currentView, resources);
+        }
     }
 
 
