@@ -13,6 +13,7 @@ import java.math.BigInteger;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.prefs.Preferences;
 
 public class Node {
 
@@ -378,9 +379,12 @@ public class Node {
     /**
      * Store data in this node
      *
-     * @param   data        data to be stored
+     * @param   data        file to be stored
+     * @param   path        file path
      */
-    public void storeData(KademliaFile data) {
+    public void storeData(KademliaFile data, String path) {
+        Preferences preferences = Preferences.userNodeForPackage(Node.class);
+        preferences.put(data.getKey().toString(), path);
         memory.store(data, BUCKET_SIZE);
     }
 
@@ -390,7 +394,7 @@ public class Node {
      *
      * @param   key         key the data is associated to
      */
-    public void deleteData(String key) {
+    public void deleteData(NodeId key) {
         memory.delete(key);
     }
 

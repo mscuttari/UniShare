@@ -90,7 +90,7 @@ public class MenuController extends AbstractController implements Initializable 
      */
     @FXML
     private void myFiles() {
-
+        setView("my_files");
     }
 
 

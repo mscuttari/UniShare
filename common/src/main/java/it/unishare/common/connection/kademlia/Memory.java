@@ -39,16 +39,6 @@ class Memory {
 
 
     /**
-     * Get keys
-     *
-     * @return  all keys
-     */
-    public Set<NodeId> getKeys() {
-        return memory.keySet();
-    }
-
-
-    /**
      * Get values
      *
      * @return  all values
@@ -87,7 +77,7 @@ class Memory {
             @Override
             public void run() {
                 expirationTimers.remove(data.getKey());
-                delete(data.getClearKey());
+                delete(data.getKey());
             }
         }, EXPIRATION);
 
@@ -188,10 +178,9 @@ class Memory {
     /**
      * Remove data
      *
-     * @param   key     key the value is mapped to
+     * @param   id      key the value is mapped to
      */
-    public void delete(String key) {
-        NodeId id = new NodeId(key);
+    public void delete(NodeId id) {
         memory.remove(id);
 
         if (republishTimers.containsKey(id)) {

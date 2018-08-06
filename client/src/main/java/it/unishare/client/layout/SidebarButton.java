@@ -9,6 +9,8 @@ public class SidebarButton extends ToggleButton {
 
     /**
      * Constructor
+     *
+     * @param   iconName    Font Awesome icon name
      */
     public SidebarButton(@NamedArg(value = "icon") String iconName) {
         setMaxWidth(Double.MAX_VALUE);  // Full width
@@ -19,7 +21,7 @@ public class SidebarButton extends ToggleButton {
 
 
     /**
-     * Set icon name
+     * Set icon
      *
      * @param   iconName    Font Awesome icon name
      */

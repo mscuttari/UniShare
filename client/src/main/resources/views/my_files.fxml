@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="it.unishare.client.controllers.MyFilesController"
+            styleClass="root">
+
+    <stylesheets>
+        <URL value="@../styles/default.css" />
+    </stylesheets>
+
+    <VBox AnchorPane.topAnchor="0.0"
+          AnchorPane.bottomAnchor="0.0"
+          AnchorPane.leftAnchor="0.0"
+          AnchorPane.rightAnchor="0.0"
+          spacing="20">
+
+        <VBox styleClass="box-section" spacing="10">
+
+            <Label styleClass="title" text="%share_new_file" />
+
+            <TextField fx:id="txtTitle"
+                       promptText="%title" />
+
+            <HBox spacing="10">
+                <TextField fx:id="txtUniversity"
+                           HBox.hgrow="ALWAYS"
+                           promptText="%university" />
+
+                <TextField fx:id="txtCourse"
+                           HBox.hgrow="ALWAYS"
+                           promptText="%course" />
+
+                <TextField fx:id="txtTeacher"
+                           HBox.hgrow="ALWAYS"
+                           promptText="%teacher" />
+            </HBox>
+
+            <HBox spacing="10">
+                <TextField fx:id="txtFilePath"
+                           maxWidth="1.7976931348623157E308"
+                           HBox.hgrow="ALWAYS"
+                           promptText="%file"
+                           editable="false" />
+
+                <Button fx:id="btnFileSelection"
+                        text="%browse"/>
+            </HBox>
+
+            <HBox alignment="CENTER_RIGHT">
+                <Button styleClass="button-left" text="%share" onAction="#share" />
+                <Button styleClass="button-right" text="%reset" onAction="#reset" />
+            </HBox>
+
+        </VBox>
+
+        <VBox styleClass="box-section" spacing="10">
+            <Label styleClass="title" text="%shared_files" />
+
+            <TableView fx:id="tableFiles">
+
+                <columns>
+                    <TableColumn fx:id="columnTitle"        maxWidth="500" style="-fx-alignment: center" text="%title"/>
+                    <TableColumn fx:id="columnUniversity"   maxWidth="300" style="-fx-alignment: center" text="%university"/>
+                    <TableColumn fx:id="columnCourse"       maxWidth="300" style="-fx-alignment: center" text="%course"/>
+                    <TableColumn fx:id="columnTeacher"      maxWidth="300" style="-fx-alignment: center" text="%teacher"/>
+                    <TableColumn fx:id="columnActions"      maxWidth="300" style="-fx-alignment: center"/>
+                </columns>
+            </TableView>
+        </VBox>
+    </VBox>
+
+</AnchorPane>
