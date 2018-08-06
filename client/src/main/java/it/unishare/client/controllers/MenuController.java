@@ -1,11 +1,11 @@
 package it.unishare.client.controllers;
 
 import it.unishare.client.connection.ConnectionManager;
+import it.unishare.client.layout.SidebarButton;
 import it.unishare.common.models.User;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import org.controlsfx.control.PopOver;
@@ -14,6 +14,10 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class MenuController extends AbstractController implements Initializable {
+
+    @FXML private SidebarButton btnSearch;
+    @FXML private SidebarButton btnMyFiles;
+    @FXML private SidebarButton btnSettings;
 
     @FXML private HBox boxLogin;
     @FXML private Label lblLogin;
@@ -25,18 +29,30 @@ public class MenuController extends AbstractController implements Initializable 
 
     private ResourceBundle resources;
 
-    private PopOver loginPopup, signupPopup;
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         this.resources = resources;
 
+        // Menu entries
+        ToggleGroup toggleGroup = new ToggleGroup();
+
+        btnSearch.setToggleGroup(toggleGroup);
+        btnMyFiles.setToggleGroup(toggleGroup);
+        btnSettings.setToggleGroup(toggleGroup);
+
+        // Prevent the menu from not having a toggle selected
+        toggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue == null)
+                oldValue.setSelected(true);
+        });
+
+        // Select the network button
+        btnSearch.setSelected(true);
+
         // Login
-        lblLogin.setText(resources.getString("login"));
         lblLogin.setOnMouseClicked(event -> showLoginScreen());
 
         // Signup
-        lblSignup.setText(resources.getString("signup"));
         lblSignup.setOnMouseClicked(event -> showSignupScreen());
 
         // Logout button
@@ -47,8 +63,6 @@ public class MenuController extends AbstractController implements Initializable 
         setLoginEnabled(!ConnectionManager.getInstance().isLogged());
 
         ConnectionManager.getInstance().loggedProperty().addListener((observable, oldValue, newValue) -> {
-
-
             if (newValue) {
                 User user = ConnectionManager.getInstance().getUser();
                 lblUser.setText(user.getFirstName() + " " + user.getLastName());
@@ -57,6 +71,32 @@ public class MenuController extends AbstractController implements Initializable 
                 setLoginEnabled(true);
             }
         });
+    }
+
+    /**
+     * Show "Search notes" page
+     */
+    @FXML
+    private void searchNotes() {
+
+    }
+
+
+    /**
+     * Show "My files" page
+     */
+    @FXML
+    private void myFiles() {
+
+    }
+
+
+    /**
+     * Show "Settings" page
+     */
+    @FXML
+    private void settings() {
+
     }
 
 
