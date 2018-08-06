@@ -1,0 +1,70 @@
+.root {
+    -fx-background-color: #fff;
+    -fx-padding: 20;
+}
+
+/* TextField */
+
+.text-field {
+    -fx-pref-height: 30px;
+    -fx-background-color: #fff;
+    -fx-border-color: #eaeaea;
+    -fx-text-fill: #7a7a7a;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-highlight-fill: #ebebcc;
+    -fx-highlight-text-fill: #000000;
+}
+
+.text-field:focused {
+    -fx-border-color: #7acff5;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+}
+
+/* Button */
+
+.button {
+    -fx-pref-height: 30px;
+    -fx-background-color: #7cce88;
+    -fx-border-color: #71c47d;
+    -fx-border-radius: 4;
+    -fx-text-fill: #fff;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+    -fx-cursor: hand;
+}
+
+.button-left {
+    -fx-border-radius: 4 0 0 4;
+}
+
+.button-center {
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: #71c47d transparent;
+}
+
+.button-right {
+    -fx-border-radius: 0 4 4 0;
+}
+
+.button:hover,
+.button-left:hover,
+.button-center:hover,
+.button-right:hover {
+    -fx-background-color: #fff;
+    -fx-border-color: #68b374;
+    -fx-text-fill: #333;
+    -fx-background-insets: 0;
+}
+
+.button:selected,
+.button-left:selected,
+.button-center:selected,
+.button-right:selected {
+    -fx-background-color: #fff;
+    -fx-border-color: #68b374;
+    -fx-text-fill: #333;
+    -fx-background-insets: 0;
+}

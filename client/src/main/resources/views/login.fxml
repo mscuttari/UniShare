@@ -3,14 +3,19 @@
 <?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView?>
 <?import org.controlsfx.control.textfield.CustomPasswordField?>
 <?import org.controlsfx.control.textfield.CustomTextField?>
+<?import java.net.URL?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="it.unishare.client.controllers.LoginController"
-      stylesheets="@../styles/login.css"
       styleClass="box-login">
+
+    <stylesheets>
+        <URL value="@../styles/default.css" />
+        <URL value="@../styles/login.css" />
+    </stylesheets>
 
     <CustomTextField fx:id="txtEmail"
                      styleClass="email"
@@ -38,9 +43,8 @@
 
     <Button fx:id="btnLogin"
             styleClass="btn-login"
-            text="%login"
-            mnemonicParsing="false"
             maxWidth="1.7976931348623157E308"
-            HBox.hgrow="ALWAYS" />
+            HBox.hgrow="ALWAYS"
+            text="%login" />
 
 </VBox>
