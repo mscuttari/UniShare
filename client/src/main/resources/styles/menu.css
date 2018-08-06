@@ -92,6 +92,7 @@
     -fx-pref-height: 35px;
     -fx-min-height: 35px;
     -fx-padding: 0 0 0 20;
+    -fx-alignment: CENTER_LEFT;
     -fx-font-size: 13px;
     -fx-font-family: 'Open Sans', sans-serif;
     -fx-cursor: hand;
@@ -136,15 +137,6 @@
 
 .submenus:selected {
     -fx-text-fill: #cde073;
-}
-
-/* Menu entries */
-.menu-catalogacao {
-    /*-fx-graphic: url("../icons/catalogue_white.png");*/
-}
-
-.menu-catalogacao:selected {
-    /*-fx-graphic: url("../icons/catalogue-black.png");*/
 }
 
 /* User box */

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import it.unishare.client.layout.SidebarButton?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.ImageView?>
@@ -33,7 +34,20 @@
                 pannable="true">
 
             <VBox styleClass="box-menus">
+                <SidebarButton fx:id="btnSearch"
+                               icon="SEARCH"
+                               onAction="#searchNotes"
+                               text="%search_notes" />
 
+                <SidebarButton fx:id="btnMyFiles"
+                               icon="FILE"
+                               onAction="#myFiles"
+                               text="%my_files" />
+
+                <SidebarButton fx:id="btnSettings"
+                               icon="COG"
+                               onAction="#settings"
+                               text="%settings" />
             </VBox>
 
         </ScrollPane>
@@ -63,14 +77,15 @@
                 <HBox fx:id="boxLogin"
                         alignment="CENTER">
                     <Label fx:id="lblLogin"
-                           styleClass="lbl-login" />
+                           styleClass="lbl-login"
+                           text="%login" />
 
                     <Label styleClass="lbl-separator"
                            text="|" />
 
                     <Label fx:id="lblSignup"
                            styleClass="lbl-signup"
-                           text="Signup" />
+                           text="%signup" />
                 </HBox>
 
             </StackPane>
