@@ -1,6 +1,13 @@
 package it.unishare.client.utils;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FileUtils {
 
@@ -33,6 +40,36 @@ public class FileUtils {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+
+    /**
+     * Read file lines
+     *
+     * @param   fileURL     file URL
+     * @return  lines
+     */
+    public static List<String> readFileLines(URL fileURL) {
+        List<String> result = new ArrayList<>();
+
+        try {
+            URI fileURI = fileURL.toURI();
+            File file = new File(fileURI);
+            BufferedReader input = new BufferedReader(new FileReader(file));
+
+            String line;
+            while ((line = input.readLine()) != null) {
+                if (!line.isEmpty())
+                    result.add(line);
+            }
+
+            input.close();
+
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
+        }
+
+        return result;
     }
 
 }

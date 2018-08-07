@@ -32,6 +32,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import org.controlsfx.control.HiddenSidesPane;
+import org.controlsfx.control.textfield.TextFields;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -90,6 +91,11 @@ public class MyFilesController extends AbstractController implements Initializab
         this.resources = resources;
 
         // Share new file
+        URL universitiesFile = getClass().getResource("/values/universities.txt");
+        List<String> universities = FileUtils.readFileLines(universitiesFile);
+        TextFields.bindAutoCompletion(txtUniversity, universities);
+
+        // Shared files
         columnTitle.setCellValueFactory(param -> param.getValue().titleProperty());
         columnUniversity.setCellValueFactory(param -> param.getValue().universityProperty());
         columnDepartment.setCellValueFactory(param -> param.getValue().departmentProperty());
@@ -197,6 +203,13 @@ public class MyFilesController extends AbstractController implements Initializab
 
         // Show success message
         showShareSuccessMessage(resources.getString("file_added"));
+
+        // Reset fields
+        txtTitle.setText(null);
+        txtUniversity.setText(null);
+        txtCourse.setText(null);
+        txtTeacher.setText(null);
+        txtFilePath.setText(null);
 
         // Reload data
         loadFiles();
