@@ -1,7 +1,7 @@
 package it.unishare.client.connection;
 
+import it.unishare.common.connection.kademlia.KademliaNode;
 import it.unishare.common.connection.kademlia.NND;
-import it.unishare.common.connection.kademlia.Node;
 import it.unishare.common.connection.server.RmiServerInterface;
 import it.unishare.common.exceptions.*;
 import it.unishare.common.models.User;
@@ -24,7 +24,7 @@ public class ConnectionManager {
 
     // Connection
     private static final String SERVER_ADDRESS = "rmi://127.0.0.1/unishare";
-    private Node node;
+    private KademliaNode node = new KademliaNode();
     private User user;
     private BooleanProperty logged = new SimpleBooleanProperty(false);
 
@@ -160,6 +160,16 @@ public class ConnectionManager {
         } catch (NotBoundException | MalformedURLException e) {
             throw new RemoteException(e.getMessage(), e);
         }
+    }
+
+
+    /**
+     * Get Kademlia node
+     *
+     * @return  node
+     */
+    public KademliaNode getNode() {
+        return node;
     }
 
 

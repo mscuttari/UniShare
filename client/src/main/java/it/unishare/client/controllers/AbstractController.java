@@ -2,6 +2,7 @@ package it.unishare.client.controllers;
 
 import it.unishare.common.utils.LogUtils;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -17,7 +18,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
-public abstract class AbstractController {
+public abstract class AbstractController implements Initializable {
 
     /**
      * Load properties from a file

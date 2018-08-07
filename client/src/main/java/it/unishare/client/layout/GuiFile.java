@@ -5,20 +5,46 @@ import javafx.beans.property.*;
 
 public class GuiFile {
 
+    private KademliaFile file;
+
+    private StringProperty title;
     private StringProperty university;
+    private StringProperty department;
     private StringProperty course;
     private StringProperty teacher;
-    private StringProperty title;
 
 
     /**
      * Constructor
      */
     public GuiFile(KademliaFile file) {
+        this.file = file;
+
+        this.title = new SimpleStringProperty(file.getData().getTitle());
         this.university = new SimpleStringProperty(file.getData().getUniversity());
+        this.department = new SimpleStringProperty(file.getData().getDepartment());
         this.course = new SimpleStringProperty(file.getData().getCourse());
         this.teacher = new SimpleStringProperty(file.getData().getTeacher());
-        this.title = new SimpleStringProperty(file.getData().getTitle());
+    }
+
+
+    /**
+     * Get file
+     *
+     * @return  file
+     */
+    public KademliaFile getFile() {
+        return file;
+    }
+
+
+    /**
+     * Get title property
+     *
+     * @return  title property
+     */
+    public StringProperty titleProperty() {
+        return title;
     }
 
 
@@ -29,6 +55,16 @@ public class GuiFile {
      */
     public StringProperty universityProperty() {
         return university;
+    }
+
+
+    /**
+     * Get department property
+     *
+     * @return  department property
+     */
+    public StringProperty departmentProperty() {
+        return department;
     }
 
 
@@ -49,16 +85,6 @@ public class GuiFile {
      */
     public StringProperty teacherProperty() {
         return teacher;
-    }
-
-
-    /**
-     * Get title property
-     *
-     * @return  title property
-     */
-    public StringProperty titleProperty() {
-        return title;
     }
 
 }

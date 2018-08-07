@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.prefs.Preferences;
 
-public class Node {
+public class KademliaNode {
 
     // Connection
     private DatagramSocket serverSocket;
@@ -28,22 +28,10 @@ public class Node {
     private static final int SIMULTANEOUS_LOOKUPS = 3;
 
     // Data
-    private final Dispatcher dispatcher;
-    private final NND info;
-    private final RoutingTable routingTable;
-    private final Memory memory;
-
-
-    /**
-     * Constructor
-     */
-    public Node() throws Exception {
-        this.serverSocket = new DatagramSocket();
-        this.dispatcher = new Dispatcher();
-        this.info = new NND(getServerIP(), serverSocket.getLocalPort());
-        this.routingTable = new RoutingTable(this, info.getIdLength(), BUCKET_SIZE);
-        this.memory = new Memory(this);
-    }
+    private Dispatcher dispatcher;
+    private NND info;
+    private RoutingTable routingTable;
+    private final Memory memory = new Memory(this);
 
 
     /**
@@ -64,12 +52,20 @@ public class Node {
 
 
     /**
-     * Get node information
+     * Get the server socket
      *
-     * @return  node info
+     * @return  server socket
      */
-    public NND getInfo() {
-        return info;
+    private DatagramSocket getServerSocket() {
+        if (serverSocket == null) {
+            try {
+                serverSocket = new DatagramSocket();
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return serverSocket;
     }
 
 
@@ -79,7 +75,33 @@ public class Node {
      * @return  message dispatcher
      */
     Dispatcher getDispatcher() {
+        if (dispatcher == null) {
+            try {
+                dispatcher = new Dispatcher();
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
+        }
+
         return dispatcher;
+    }
+
+
+    /**
+     * Get node information
+     *
+     * @return  node info
+     */
+    public NND getInfo() {
+        if (info == null && getServerSocket() != null) {
+            try {
+                info = new NND(getServerIP(), getServerSocket().getLocalPort());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return info;
     }
 
 
@@ -89,6 +111,10 @@ public class Node {
      * @return  routing table
      */
     RoutingTable getRoutingTable() {
+        if (routingTable == null && getInfo() != null) {
+            routingTable = new RoutingTable(this, getInfo().getIdLength(), BUCKET_SIZE);
+        }
+
         return routingTable;
     }
 
@@ -118,8 +144,8 @@ public class Node {
                     if (obj instanceof Message) {
                         Message message = (Message) obj;
 
-                        if (dispatcher.isResponse(message)) {
-                            dispatcher.dispatch(message);
+                        if (getDispatcher().isResponse(message)) {
+                            getDispatcher().dispatch(message);
                         } else {
                             elaborateMessage(message);
                         }
@@ -143,13 +169,13 @@ public class Node {
      * @param   message     received message
      */
     private void elaborateMessage(Message message) {
-        routingTable.addNode(message.getSource());
+        getRoutingTable().addNode(message.getSource());
 
         // PING
         if (message instanceof Ping) {
             log("Ping request received from " + message.getSource().getId());
             Ping response = ((Ping) message).createResponse();
-            dispatcher.sendMessage(response);
+            getDispatcher().sendMessage(response);
             log("Ping response sent to " + response.getDestination().getId());
         }
 
@@ -158,8 +184,8 @@ public class Node {
             NodeId targetId = ((FindNode) message).getTargetId();
             log("Lookup request received from " + message.getSource().getId() + " for " + targetId);
             FindNode response = ((FindNode) message).createResponse();
-            response.setNearestNodes(routingTable.getNearestNodes(targetId, BUCKET_SIZE));
-            dispatcher.sendMessage(response);
+            response.setNearestNodes(getRoutingTable().getNearestNodes(targetId, BUCKET_SIZE));
+            getDispatcher().sendMessage(response);
         }
 
         // STORE
@@ -168,7 +194,7 @@ public class Node {
             log("Store request received from " + message.getSource().getId() + " for " + data.getKey());
             memory.store(data);
             Store response = ((Store) message).createResponse();
-            dispatcher.sendMessage(response);
+            getDispatcher().sendMessage(response);
         }
     }
 
@@ -185,11 +211,11 @@ public class Node {
         if (!getInfo().equals(bootstrapNode)) {
             Ping message = new Ping(getInfo(), bootstrapNode);
 
-            dispatcher.sendMessage(message, new Dispatcher.MessageListener() {
+            getDispatcher().sendMessage(message, new Dispatcher.MessageListener() {
                 @Override
                 public void onSuccess(Message response) {
                     log("Ping response received from " + response.getSource().getId());
-                    routingTable.addNode(response.getSource());
+                    getRoutingTable().addNode(response.getSource());
                     lookup(bootstrapNode.getId());
                 }
 
@@ -213,17 +239,17 @@ public class Node {
         log("Pinging " + node.getId());
         Ping message = new Ping(getInfo(), node);
 
-        dispatcher.sendMessage(message, new Dispatcher.MessageListener() {
+        getDispatcher().sendMessage(message, new Dispatcher.MessageListener() {
             @Override
             public void onSuccess(Message response) {
                 log("Ping response received from " + response.getSource().getId());
-                routingTable.addNode(node);
+                getRoutingTable().addNode(node);
             }
 
             @Override
             public void onFailure() {
                 log("Can't ping " + message.getDestination().getId());
-                routingTable.removeNode(node);
+                getRoutingTable().removeNode(node);
             }
         });
     }
@@ -237,7 +263,7 @@ public class Node {
      */
     List<NND> lookup(NodeId targetId) {
         // Get the first alpha nodes to send the first requests
-        List<NND> nearestNodes = routingTable.getNearestNodes(targetId, SIMULTANEOUS_LOOKUPS);
+        List<NND> nearestNodes = getRoutingTable().getNearestNodes(targetId, SIMULTANEOUS_LOOKUPS);
         if (nearestNodes.size() == 0) return new ArrayList<>();
         log("Starting lookup nodes: " + nearestNodes);
 
@@ -247,12 +273,12 @@ public class Node {
         nearestNodes.forEach(node -> CompletableFuture.runAsync(() -> {
             FindNode message = new FindNode(getInfo(), node, targetId);
 
-            dispatcher.sendMessage(message, new Dispatcher.MessageListener() {
+            getDispatcher().sendMessage(message, new Dispatcher.MessageListener() {
                 @Override
                 public void onSuccess(Message response) {
                     // Add the node to the queried ones
                     queriedNodes.add(node);
-                    routingTable.addNode(response.getSource());
+                    getRoutingTable().addNode(response.getSource());
 
                     // Get query groups
                     assert response instanceof FindNode;
@@ -294,7 +320,7 @@ public class Node {
 
             FindNode message = new FindNode(getInfo(), recipient, targetId);
 
-            dispatcher.sendMessage(message, new Dispatcher.MessageListener() {
+            getDispatcher().sendMessage(message, new Dispatcher.MessageListener() {
                 @Override
                 public void onSuccess(Message response) {
                     if (queriedNodes.contains(recipient))
@@ -302,7 +328,7 @@ public class Node {
 
                     // Add the node to the queried ones
                     queriedNodes.add(recipient);
-                    routingTable.addNode(response.getSource());
+                    getRoutingTable().addNode(response.getSource());
 
                     // Get query groups
                     assert response instanceof FindNode;
@@ -383,7 +409,7 @@ public class Node {
      * @param   path        file path
      */
     public void storeData(KademliaFile data, String path) {
-        Preferences preferences = Preferences.userNodeForPackage(Node.class);
+        Preferences preferences = Preferences.userNodeForPackage(KademliaNode.class);
         preferences.put(data.getKey().toString(), path);
         memory.store(data, BUCKET_SIZE);
     }
@@ -405,7 +431,7 @@ public class Node {
      * @param   message     message to be logged
      */
     private void log(String message) {
-        LogUtils.d("Node [" + info.getId() + "]", message);
+        LogUtils.d("Node [" + getInfo().getId() + "]", message);
     }
 
 }

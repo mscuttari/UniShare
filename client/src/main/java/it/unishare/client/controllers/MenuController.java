@@ -13,7 +13,7 @@ import org.controlsfx.control.PopOver;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class MenuController extends AbstractController implements Initializable {
+public class MenuController extends AbstractController {
 
     @FXML private BorderPane rootPane;
 

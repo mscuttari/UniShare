@@ -29,7 +29,7 @@ public class NodeId implements Serializable {
      *
      * @param   bytes       byte array to be used for the ID
      */
-    private NodeId(byte[] bytes) {
+    public NodeId(byte[] bytes) {
         if (bytes.length != ID_LENGTH / 8) {
             throw new IllegalArgumentException("Data need to be " + (ID_LENGTH / 8) + " characters long");
         }

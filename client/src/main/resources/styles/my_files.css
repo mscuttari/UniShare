@@ -1,0 +1,35 @@
+.message {
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 0 0 0 5;
+    -fx-font-weight: bold;
+}
+
+.message-success {
+    -fx-text-fill: black;
+}
+
+.message-failure {
+    -fx-text-fill: #e60000;
+}
+
+.preview-page {
+    -fx-background-color: white;
+    -fx-padding: 10;
+    -fx-border-color: grey;
+    -fx-border-width: 0 0 0 2;
+}
+
+.box-title {
+    -fx-padding: 0 0 15 0;
+}
+
+.button-close {
+    -fx-font-size: 15;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.button-close:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}

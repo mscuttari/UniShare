@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -22,7 +23,7 @@ class Dispatcher {
      *
      * @throws  Exception   in case of initialization error
      */
-    public Dispatcher() throws Exception {
+    public Dispatcher() throws SocketException {
         this.listeners = new HashMap<>();
         this.socket = new DatagramSocket();
     }
