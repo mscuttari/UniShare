@@ -3,8 +3,11 @@ package it.unishare.client.controllers;
 import com.sun.pdfview.PDFFile;
 import com.sun.pdfview.PDFPage;
 import it.unishare.client.connection.ConnectionManager;
+import it.unishare.client.database.DatabaseManager;
 import it.unishare.client.layout.GuiFile;
 import it.unishare.client.layout.MultipleIconButtonTableCell;
+import it.unishare.client.utils.FileUtils;
+import it.unishare.client.utils.Settings;
 import it.unishare.common.connection.kademlia.KademliaFile;
 import it.unishare.common.connection.kademlia.KademliaFileData;
 import it.unishare.common.connection.kademlia.KademliaNode;
@@ -14,25 +17,35 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Side;
 import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import org.controlsfx.control.HiddenSidesPane;
 
+import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -85,7 +98,7 @@ public class MyFilesController extends AbstractController implements Initializab
 
         columnActions.setCellFactory(param -> new MultipleIconButtonTableCell<>(
                 new Triple<>("EYE", resources.getString("preview"), param1 -> {
-                    //preview(param1.getFile());
+                    preview(param1.getFile());
                     return null;
                 }),
                 new Triple<>("FILE", resources.getString("open"), param1 -> {
@@ -97,6 +110,9 @@ public class MyFilesController extends AbstractController implements Initializab
                     return null;
                 })
         ));
+
+        // Get shared files
+        loadFiles();
 
         // PDF viewer
         scroller.contentProperty().bind(currentImage);
@@ -117,7 +133,9 @@ public class MyFilesController extends AbstractController implements Initializab
         fileChooser.getExtensionFilters().add(extensionFilter);
 
         File selectedFile = fileChooser.showOpenDialog(txtFilePath.getScene().getWindow());
-        txtFilePath.setText(selectedFile.getAbsolutePath());
+
+        if (selectedFile != null)
+            txtFilePath.setText(selectedFile.getAbsolutePath());
     }
 
 
@@ -134,9 +152,6 @@ public class MyFilesController extends AbstractController implements Initializab
         String filePath = txtFilePath.getText().trim();
 
         if (title.isEmpty() ||university.isEmpty() || department.isEmpty() || course.isEmpty() || teacher.isEmpty() || filePath.isEmpty()) {
-            lblMessage.getStyleClass().remove("message-success");
-            lblMessage.getStyleClass().add("message-failure");
-
             List<String> fields = new ArrayList<>();
             if (title.isEmpty()) fields.add(resources.getString("title").toLowerCase());
             if (university.isEmpty()) fields.add(resources.getString("university").toLowerCase());
@@ -145,14 +160,25 @@ public class MyFilesController extends AbstractController implements Initializab
             if (teacher.isEmpty()) fields.add(resources.getString("teacher").toLowerCase());
             if (filePath.isEmpty()) fields.add(resources.getString("file").toLowerCase());
 
-            lblMessage.setText(resources.getString("missing_fields") + ": " + String.join(", ", fields));
+            showShareFailureMessage(resources.getString("missing_fields") + ": " + String.join(", ", fields));
             return;
         }
 
-        lblMessage.getStyleClass().remove("message-failure");
-        lblMessage.getStyleClass().add("message-success");
-        lblMessage.setText(resources.getString("file_added"));
+        // Check file size
+        try {
+            long size = Files.size(Paths.get(filePath));
 
+            if (size > 10 * 1024 * 1024) {
+                showShareFailureMessage(resources.getString("file_too_big"));
+                return;
+            }
+
+        } catch (IOException e) {
+            showShareFailureMessage(resources.getString("file_not_found"));
+            return;
+        }
+
+        // Copy and store file
         KademliaNode node = ConnectionManager.getInstance().getNode();
         KademliaFileData data = new KademliaFileData(title, university, department, course, teacher);
 
@@ -162,7 +188,18 @@ public class MyFilesController extends AbstractController implements Initializab
                 data
         );
 
-        node.storeData(file, filePath);
+        File source = new File(filePath);
+        File destination = new File(getFilePath(file));
+        FileUtils.copyFile(source, destination);
+
+        DatabaseManager.getInstance().addFile(file);
+        //node.storeData(file, filePath);
+
+        // Show success message
+        showShareSuccessMessage(resources.getString("file_added"));
+
+        // Reload data
+        loadFiles();
     }
 
 
@@ -181,11 +218,27 @@ public class MyFilesController extends AbstractController implements Initializab
 
 
     /**
+     * Populate the shared files table
+     */
+    private void loadFiles() {
+        List<KademliaFile> files = DatabaseManager.getInstance().getAllFiles();
+        ObservableList<GuiFile> guiFiles = FXCollections.observableArrayList();
+
+        for (KademliaFile file : files)
+            guiFiles.add(new GuiFile(file));
+
+        tableFiles.setItems(guiFiles);
+    }
+
+
+    /**
      * Preview file
      *
-     * @param   filePath    file path
+     * @param   file    file
      */
-    private void preview(String filePath) {
+    private void preview(KademliaFile file) {
+        String filePath = getFilePath(file);
+
         // Load PDF
         Task<PDFFile> loadFileTask = new Task<PDFFile>() {
             @Override
@@ -222,6 +275,81 @@ public class MyFilesController extends AbstractController implements Initializab
     @FXML
     private void closePreview() {
         hiddenSidesPane.setPinnedSide(null);
+    }
+
+
+    /**
+     * Open file
+     *
+     * @param   file    file
+     */
+    private void open(KademliaFile file) {
+        String filePath = getFilePath(file);
+
+        try {
+            Desktop.getDesktop().open(new File(filePath));
+        } catch (IOException e) {
+            // TODO: error message
+        }
+    }
+
+
+    /**
+     * Delete file
+     *
+     * @param   file    file
+     */
+    private void delete(KademliaFile file) {
+        // Delete the real file
+        String filePath = getFilePath(file);
+
+        try {
+            Files.delete(Paths.get(filePath));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Remove from the database
+        DatabaseManager.getInstance().deleteFile(file.getKey().getBytes());
+
+        // Reload data
+        loadFiles();
+    }
+
+
+    /**
+     * Get file path
+     *
+     * @param   file    file
+     * @return  file path
+     */
+    private static String getFilePath(KademliaFile file) {
+        String fileName = file.getKey().toString() + ".pdf";
+        return Settings.getDataPath() + File.separator + fileName;
+    }
+
+
+    /**
+     * Show success message for the file sharing process
+     *
+     * @param   message     message
+     */
+    private void showShareSuccessMessage(String message) {
+        lblMessage.getStyleClass().remove("message-failure");
+        lblMessage.getStyleClass().add("message-success");
+        lblMessage.setText(message);
+    }
+
+
+    /**
+     * Show failure message for the file sharing process
+     *
+     * @param   message     message
+     */
+    private void showShareFailureMessage(String message) {
+        lblMessage.getStyleClass().remove("message-success");
+        lblMessage.getStyleClass().add("message-failure");
+        lblMessage.setText(message);
     }
 
 
@@ -304,35 +432,10 @@ public class MyFilesController extends AbstractController implements Initializab
             }
         };
 
-        updateImageTask.setOnSucceeded(event -> {
-            currentImage.set(updateImageTask.getValue());
-        });
-
-        updateImageTask.setOnFailed(event -> {
-            updateImageTask.getException().printStackTrace();
-        });
+        updateImageTask.setOnSucceeded(event -> currentImage.set(updateImageTask.getValue()));
+        updateImageTask.setOnFailed(event -> updateImageTask.getException().printStackTrace());
 
         getThreadExecutor().submit(updateImageTask);
-    }
-
-
-    /**
-     * Open file
-     *
-     * @param   file    file
-     */
-    private void open(KademliaFile file) {
-        // TODO: open
-    }
-
-
-    /**
-     * Delete file
-     *
-     * @param   file    file
-     */
-    private void delete(KademliaFile file) {
-        // TODO: delete
     }
 
 

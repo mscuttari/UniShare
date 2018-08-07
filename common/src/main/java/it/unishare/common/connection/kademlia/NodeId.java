@@ -41,21 +41,14 @@ public class NodeId implements Serializable {
     /**
      * Constructor
      *
-     * @param   data    string data
+     * @param   key    string data
      */
-    public NodeId(String data) {
-        try {
-            MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
-            messageDigest.update(data.getBytes());
-            this.keyBytes = messageDigest.digest();
-
-        } catch (NoSuchAlgorithmException e) {
-            if (data.getBytes().length != ID_LENGTH / 8) {
-                throw new IllegalArgumentException("Data need to be " + (ID_LENGTH / 8) + " characters long");
-            }
-
-            this.keyBytes = data.getBytes();
+    public NodeId(String key) {
+        if (key.getBytes().length != ID_LENGTH / 8) {
+            throw new IllegalArgumentException("Data need to be " + (ID_LENGTH / 8) + " characters long");
         }
+
+        this.keyBytes = key.getBytes();
     }
 
 

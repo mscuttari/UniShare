@@ -85,7 +85,7 @@
                             <TableColumn fx:id="columnDepartment"   text="%department"/>
                             <TableColumn fx:id="columnCourse"       text="%course"/>
                             <TableColumn fx:id="columnTeacher"      text="%teacher"/>
-                            <TableColumn fx:id="columnActions" />
+                            <TableColumn fx:id="columnActions"      minWidth="150" maxWidth="150" resizable="false" />
                         </columns>
                     </TableView>
                 </VBox>
