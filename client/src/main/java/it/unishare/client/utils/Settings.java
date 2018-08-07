@@ -5,9 +5,6 @@ import java.util.prefs.Preferences;
 
 public class Settings {
 
-    /**
-     * Constructor
-     */
     private Settings() {
 
     }
@@ -49,7 +46,7 @@ public class Settings {
      * @return  default data directory path
      */
     private static String getDefaultDataPath() {
-        return System.getProperty("user.home") + File.separator + "UniShare" + File.separator;
+        return System.getProperty("user.home") + File.separator + "UniShare";
     }
 
 }

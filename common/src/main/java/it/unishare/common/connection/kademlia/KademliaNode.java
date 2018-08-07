@@ -13,7 +13,6 @@ import java.math.BigInteger;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.prefs.Preferences;
 
 public class KademliaNode {
 
@@ -409,8 +408,6 @@ public class KademliaNode {
      * @param   path        file path
      */
     public void storeData(KademliaFile data, String path) {
-        Preferences preferences = Preferences.userNodeForPackage(KademliaNode.class);
-        preferences.put(data.getKey().toString(), path);
         memory.store(data, BUCKET_SIZE);
     }
 
