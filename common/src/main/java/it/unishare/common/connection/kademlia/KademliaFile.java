@@ -20,7 +20,7 @@ public class KademliaFile implements Serializable {
      * @param   key     key
      * @param   owner   owner of the data
      */
-    public KademliaFile(String key, NND owner, KademliaFileData data) {
+    public KademliaFile(byte[] key, NND owner, KademliaFileData data) {
         this.key = new NodeId(key);
         this.owner = owner;
         this.data = data;

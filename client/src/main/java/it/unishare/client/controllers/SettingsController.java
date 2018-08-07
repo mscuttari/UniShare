@@ -12,7 +12,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class SettingsController extends AbstractController implements Initializable {
+public class SettingsController extends AbstractController {
 
     @FXML private TextField txtDataPath;
     @FXML private Button btnDirectorySelection;
@@ -30,7 +30,7 @@ public class SettingsController extends AbstractController implements Initializa
      */
     private void selectDataDirectory() {
         DirectoryChooser directoryChooser = new DirectoryChooser();
-        File selectedDirectory = directoryChooser.showDialog(new Stage());
+        File selectedDirectory = directoryChooser.showDialog(txtDataPath.getScene().getWindow());
 
         if (selectedDirectory != null)
             Settings.setDataPath(selectedDirectory.getAbsolutePath());

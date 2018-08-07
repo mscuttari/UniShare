@@ -7,7 +7,7 @@ import javafx.scene.layout.BorderPane;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class MainController extends AbstractController implements Initializable {
+public class MainController extends AbstractController {
 
     @FXML private BorderPane borderPane;
 

@@ -14,4 +14,7 @@ dependencies {
     // https://mvnrepository.com/artifact/de.jensd/fontawesomefx
     compile group: 'de.jensd', name: 'fontawesomefx', version: '8.9'
 
+    // https://mvnrepository.com/artifact/org.swinglabs/pdf-renderer
+    compile group: 'org.swinglabs', name: 'pdf-renderer', version: '1.0.5'
+
 }

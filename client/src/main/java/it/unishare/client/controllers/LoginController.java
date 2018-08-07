@@ -17,7 +17,7 @@ import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.ResourceBundle;
 
-public class LoginController extends AbstractController implements Initializable {
+public class LoginController extends AbstractController {
 
     @FXML private TextField txtEmail;
     @FXML private PasswordField txtPassword;

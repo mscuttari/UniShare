@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 class Memory {
 
-    private final Node parentNode;
+    private final KademliaNode parentNode;
     private final Map<NodeId, KademliaFile> memory = new HashMap<>();
     private final Map<NodeId, Timer> republishTimers = new HashMap<>();
     private final Map<NodeId, Timer> expirationTimers = new HashMap<>();
@@ -22,7 +22,7 @@ class Memory {
      *
      * @param   parentNode      parent node
      */
-    public Memory(Node parentNode) {
+    public Memory(KademliaNode parentNode) {
         this.parentNode = parentNode;
     }
 

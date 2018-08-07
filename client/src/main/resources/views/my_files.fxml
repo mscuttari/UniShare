@@ -1,77 +1,130 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import org.controlsfx.control.HiddenSidesPane?>
 <?import java.net.URL?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+<?import it.unishare.client.layout.IconButton?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="it.unishare.client.controllers.MyFilesController"
-            styleClass="root">
+            fx:controller="it.unishare.client.controllers.MyFilesController">
 
     <stylesheets>
         <URL value="@../styles/default.css" />
+        <URL value="@../styles/my_files.css" />
     </stylesheets>
 
-    <VBox AnchorPane.topAnchor="0.0"
-          AnchorPane.bottomAnchor="0.0"
-          AnchorPane.leftAnchor="0.0"
-          AnchorPane.rightAnchor="0.0"
-          spacing="20">
+    <HiddenSidesPane fx:id="hiddenSidesPane"
+                     triggerDistance="-Infinity"
+                     AnchorPane.topAnchor="0.0"
+                     AnchorPane.bottomAnchor="0.0"
+                     AnchorPane.leftAnchor="0.0"
+                     AnchorPane.rightAnchor="0.0">
 
-        <VBox styleClass="box-section" spacing="10">
+        <content>
+            <VBox spacing="20"
+                  styleClass="root">
 
-            <Label styleClass="title" text="%share_new_file" />
+                <VBox styleClass="box-section" spacing="10">
 
-            <TextField fx:id="txtTitle"
-                       promptText="%title" />
+                    <Label styleClass="title" text="%share_new_file" />
 
-            <HBox spacing="10">
-                <TextField fx:id="txtUniversity"
-                           HBox.hgrow="ALWAYS"
-                           promptText="%university" />
+                    <TextField fx:id="txtTitle"
+                               promptText="%title" />
 
-                <TextField fx:id="txtCourse"
-                           HBox.hgrow="ALWAYS"
-                           promptText="%course" />
+                    <HBox spacing="10">
+                        <TextField fx:id="txtUniversity"
+                                   HBox.hgrow="ALWAYS"
+                                   promptText="%university" />
 
-                <TextField fx:id="txtTeacher"
-                           HBox.hgrow="ALWAYS"
-                           promptText="%teacher" />
-            </HBox>
+                        <TextField fx:id="txtDepartment"
+                                   HBox.hgrow="ALWAYS"
+                                   promptText="%department" />
 
-            <HBox spacing="10">
-                <TextField fx:id="txtFilePath"
-                           maxWidth="1.7976931348623157E308"
-                           HBox.hgrow="ALWAYS"
-                           promptText="%file"
-                           editable="false" />
+                        <TextField fx:id="txtCourse"
+                                   HBox.hgrow="ALWAYS"
+                                   promptText="%course" />
 
-                <Button fx:id="btnFileSelection"
-                        text="%browse"/>
-            </HBox>
+                        <TextField fx:id="txtTeacher"
+                                   HBox.hgrow="ALWAYS"
+                                   promptText="%teacher" />
+                    </HBox>
 
-            <HBox alignment="CENTER_RIGHT">
-                <Button styleClass="button-left" text="%share" onAction="#share" />
-                <Button styleClass="button-right" text="%reset" onAction="#reset" />
-            </HBox>
+                    <HBox spacing="10">
+                        <TextField fx:id="txtFilePath"
+                                   maxWidth="1.7976931348623157E308"
+                                   HBox.hgrow="ALWAYS"
+                                   promptText="%file"
+                                   editable="false" />
 
-        </VBox>
+                        <Button text="%browse"
+                                onAction="#selectFile" />
+                    </HBox>
 
-        <VBox styleClass="box-section" spacing="10">
-            <Label styleClass="title" text="%shared_files" />
+                    <HBox alignment="CENTER">
+                        <Label fx:id="lblMessage"
+                               styleClass="message"
+                               maxWidth="1.7976931348623157E308"
+                               HBox.hgrow="ALWAYS"/>
 
-            <TableView fx:id="tableFiles">
+                        <Button styleClass="button-left" text="%share" onAction="#share" />
+                        <Button styleClass="button-right" text="%reset" onAction="#reset" />
+                    </HBox>
 
-                <columns>
-                    <TableColumn fx:id="columnTitle"        maxWidth="500" style="-fx-alignment: center" text="%title"/>
-                    <TableColumn fx:id="columnUniversity"   maxWidth="300" style="-fx-alignment: center" text="%university"/>
-                    <TableColumn fx:id="columnCourse"       maxWidth="300" style="-fx-alignment: center" text="%course"/>
-                    <TableColumn fx:id="columnTeacher"      maxWidth="300" style="-fx-alignment: center" text="%teacher"/>
-                    <TableColumn fx:id="columnActions"      maxWidth="300" style="-fx-alignment: center"/>
-                </columns>
-            </TableView>
-        </VBox>
-    </VBox>
+                </VBox>
+
+                <VBox styleClass="box-section" spacing="10">
+                    <Label styleClass="title" text="%shared_files" />
+
+                    <TableView fx:id="tableFiles">
+
+                        <columns>
+                            <TableColumn fx:id="columnTitle"        text="%title"/>
+                            <TableColumn fx:id="columnUniversity"   text="%university"/>
+                            <TableColumn fx:id="columnDepartment"   text="%department"/>
+                            <TableColumn fx:id="columnCourse"       text="%course"/>
+                            <TableColumn fx:id="columnTeacher"      text="%teacher"/>
+                            <TableColumn fx:id="columnActions" />
+                        </columns>
+                    </TableView>
+                </VBox>
+            </VBox>
+        </content>
+
+        <right>
+            <AnchorPane styleClass="preview-page">
+                <BorderPane styleClass="box-section"
+                            AnchorPane.topAnchor="0.0"
+                            AnchorPane.bottomAnchor="0.0"
+                            AnchorPane.leftAnchor="0.0"
+                            AnchorPane.rightAnchor="0.0">
+                    <top>
+                        <HBox styleClass="box-title">
+                            <Label styleClass="title"
+                                   maxWidth="1.7976931348623157E308"
+                                   HBox.hgrow="ALWAYS"
+                                   text="%preview" />
+
+                            <IconButton styleClass="button-close"
+                                        icon="TIMES"
+                                        onAction="#closePreview" />
+                        </HBox>
+                    </top>
+
+                    <center>
+                        <Pagination fx:id="pdfViewer" />
+                    </center>
+
+                    <fx:define>
+                        <ScrollPane fx:id="scroller" pannable="true" />
+                    </fx:define>
+                </BorderPane>
+            </AnchorPane>
+        </right>
+
+    </HiddenSidesPane>
+
+
 
 </AnchorPane>

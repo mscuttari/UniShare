@@ -8,6 +8,7 @@ public class KademliaFileData implements Serializable {
     private static final long serialVersionUID = 5975688018355674770L;
 
     private String university;
+    private String department;
     private String course;
     private String teacher;
     private String title;
@@ -16,16 +17,28 @@ public class KademliaFileData implements Serializable {
     /**
      * Constructor
      *
+     * @param   title           note title
      * @param   university      university name
+     * @param   department      department name
      * @param   course          course name
      * @param   teacher         teacher name
-     * @param   title           note title
      */
-    public KademliaFileData(String university, String course, String teacher, String title) {
+    public KademliaFileData(String title, String university, String department, String course, String teacher) {
+        this.title = title;
         this.university = university;
+        this.department = department;
         this.course = course;
         this.teacher = teacher;
-        this.title = title;
+    }
+
+
+    /**
+     * Get note title
+     *
+     * @return  note title
+     */
+    public String getTitle() {
+        return title;
     }
 
 
@@ -36,6 +49,16 @@ public class KademliaFileData implements Serializable {
      */
     public String getUniversity() {
         return university;
+    }
+
+
+    /**
+     * Get department name
+     *
+     * @return  department name
+     */
+    public String getDepartment() {
+        return department;
     }
 
 
@@ -56,16 +79,6 @@ public class KademliaFileData implements Serializable {
      */
     public String getTeacher() {
         return teacher;
-    }
-
-
-    /**
-     * Get note title
-     *
-     * @return  note title
-     */
-    public String getTitle() {
-        return title;
     }
 
 }

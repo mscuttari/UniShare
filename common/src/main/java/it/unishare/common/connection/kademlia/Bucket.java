@@ -13,7 +13,7 @@ import java.util.function.UnaryOperator;
 class Bucket extends ArrayList<NND> {
 
     private int size;
-    private Node parentNode;
+    private KademliaNode parentNode;
     private Queue<NND> queue = new LinkedList<>();
     private RandomGaussian randomGaussian = new RandomGaussian();
 
@@ -24,7 +24,7 @@ class Bucket extends ArrayList<NND> {
      * @param   k       bucket size
      * @param   node    parent node
      */
-    public Bucket(int k, Node node) {
+    public Bucket(int k, KademliaNode node) {
         super(k);
 
         this.size = k;
