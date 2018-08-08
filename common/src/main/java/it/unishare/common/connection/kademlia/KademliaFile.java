@@ -27,6 +27,12 @@ public class KademliaFile implements Serializable {
     }
 
 
+    @Override
+    public String toString() {
+        return "{" + key + ", " + owner + ", " + data + "}";
+    }
+
+
     /**
      * Get key
      *

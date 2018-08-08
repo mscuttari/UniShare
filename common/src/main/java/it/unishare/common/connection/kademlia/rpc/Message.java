@@ -8,7 +8,7 @@ import java.util.UUID;
 /**
  * Remote Procedure Call
  */
-public abstract class Message<T> implements Serializable {
+public abstract class Message implements Serializable {
 
     private static final long serialVersionUID = -4088040739038751081L;
 
@@ -90,13 +90,5 @@ public abstract class Message<T> implements Serializable {
     private static long generateId() {
         return UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE;
     }
-
-
-    /**
-     * Create response message
-     *
-     * @return  response message
-     */
-    protected abstract T createResponse();
 
 }

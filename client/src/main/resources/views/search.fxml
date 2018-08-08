@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import it.unishare.client.layout.IconButton?>
 <?import org.controlsfx.control.HiddenSidesPane?>
 <?import java.net.URL?>
 <?import javafx.scene.control.*?>
@@ -8,11 +7,11 @@
 
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="it.unishare.client.controllers.MyFilesController">
+            fx:controller="it.unishare.client.controllers.SearchController">
 
     <stylesheets>
         <URL value="@../styles/default.css" />
-        <URL value="@../styles/my_files.css" />
+        <URL value="@../styles/search.css" />
     </stylesheets>
 
     <HiddenSidesPane fx:id="hiddenSidesPane"
@@ -28,7 +27,7 @@
 
                 <VBox styleClass="box-section" spacing="10">
 
-                    <Label styleClass="title" text="%share_new_file" />
+                    <Label styleClass="title" text="%search_filters" />
 
                     <TextField fx:id="txtTitle"
                                promptText="%title" />
@@ -51,24 +50,13 @@
                                    promptText="%teacher" />
                     </HBox>
 
-                    <HBox spacing="10">
-                        <TextField fx:id="txtFilePath"
-                                   maxWidth="1.7976931348623157E308"
-                                   HBox.hgrow="ALWAYS"
-                                   promptText="%file"
-                                   editable="false" />
-
-                        <Button text="%browse"
-                                onAction="#selectFile" />
-                    </HBox>
-
                     <HBox alignment="CENTER">
                         <Label fx:id="lblMessage"
                                styleClass="message"
                                maxWidth="1.7976931348623157E308"
                                HBox.hgrow="ALWAYS"/>
 
-                        <Button styleClass="button-left" text="%share" onAction="#share" />
+                        <Button styleClass="button-left" text="%search" onAction="#search" />
                         <Button styleClass="button-right" text="%reset" onAction="#reset" />
                     </HBox>
 
@@ -80,6 +68,7 @@
                     <TableView fx:id="tableFiles">
 
                         <columns>
+                            <TableColumn fx:id="columnRating"       text="%rating" />
                             <TableColumn fx:id="columnTitle"        text="%title"/>
                             <TableColumn fx:id="columnUniversity"   text="%university"/>
                             <TableColumn fx:id="columnDepartment"   text="%department"/>
@@ -92,36 +81,7 @@
             </VBox>
         </content>
 
-        <right>
-            <AnchorPane styleClass="preview-page">
-                <BorderPane styleClass="box-section"
-                            AnchorPane.topAnchor="0.0"
-                            AnchorPane.bottomAnchor="0.0"
-                            AnchorPane.leftAnchor="0.0"
-                            AnchorPane.rightAnchor="0.0">
-                    <top>
-                        <HBox styleClass="box-title">
-                            <Label styleClass="title"
-                                   maxWidth="1.7976931348623157E308"
-                                   HBox.hgrow="ALWAYS"
-                                   text="%preview" />
-
-                            <IconButton styleClass="button-close"
-                                        icon="TIMES"
-                                        onAction="#closePreview" />
-                        </HBox>
-                    </top>
-
-                    <center>
-                        <Pagination fx:id="pdfViewer" />
-                    </center>
-
-                    <fx:define>
-                        <ScrollPane fx:id="scroller" pannable="true" />
-                    </fx:define>
-                </BorderPane>
-            </AnchorPane>
-        </right>
+        <!-- TODO: reviews right panel -->
 
     </HiddenSidesPane>
 

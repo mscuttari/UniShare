@@ -2,7 +2,7 @@ package it.unishare.common.connection.kademlia.rpc;
 
 import it.unishare.common.connection.kademlia.NND;
 
-public final class Ping extends Message<Ping> {
+public final class Ping extends Message {
 
     private static final long serialVersionUID = 5524791019372047864L;
 
@@ -18,7 +18,11 @@ public final class Ping extends Message<Ping> {
     }
 
 
-    @Override
+    /**
+     * Create response message
+     *
+     * @return  response message
+     */
     public Ping createResponse() {
         Ping response = new Ping(getDestination(), getSource());
         response.setId(getId());

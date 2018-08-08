@@ -1,9 +1,8 @@
 package it.unishare.common.connection.kademlia;
 
-import it.unishare.common.connection.kademlia.rpc.FindNode;
-import it.unishare.common.connection.kademlia.rpc.Message;
-import it.unishare.common.connection.kademlia.rpc.Ping;
-import it.unishare.common.connection.kademlia.rpc.Store;
+import it.unishare.common.connection.kademlia.rpc.*;
+import it.unishare.common.exceptions.NodeNotConnectedException;
+import it.unishare.common.utils.ListUtils;
 import it.unishare.common.utils.LogUtils;
 import it.unishare.common.utils.Pair;
 import sun.awt.Mutex;
@@ -12,25 +11,26 @@ import java.io.*;
 import java.math.BigInteger;
 import java.net.*;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class KademliaNode {
 
     // Connection
     private DatagramSocket serverSocket;
 
-    private Mutex mutex = new Mutex();
-    private boolean connected = false;
+    private Mutex serverMutex = new Mutex();
+    private Semaphore connectionStatus = new Semaphore(0);
 
     // Configuration
     private static final int BUCKET_SIZE = 20;
     private static final int SIMULTANEOUS_LOOKUPS = 3;
 
     // Data
-    private Dispatcher dispatcher;
     private NND info;
+    private Dispatcher dispatcher;
     private RoutingTable routingTable;
-    private final Memory memory = new Memory(this);
+    private Memory memory;
 
 
     /**
@@ -119,17 +119,68 @@ public class KademliaNode {
 
 
     /**
+     * Get memory
+     *
+     * @return  memory
+     */
+    private Memory getMemory() {
+        if (memory == null) {
+            memory = new Memory(this);
+        }
+
+        return memory;
+    }
+
+
+    /**
+     * Check whether the node is connected to the DHT network
+     *
+     * @return  true if connected; false otherwise
+     */
+    private boolean isConnected() {
+        return connectionStatus.availablePermits() > 0;
+    }
+
+
+    /**
+     * Wait for connectivity
+     */
+    void waitForConnection() {
+        try {
+            connectionStatus.acquire();
+            connectionStatus.release();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    /**
+     * Set connection status
+     *
+     * @param   connected   true to set the node as connected to the network; false to set it as disconnected
+     */
+    void setConnectionStatus(boolean connected) {
+        connectionStatus.drainPermits();
+
+        if (connected) {
+            connectionStatus.release(Integer.MAX_VALUE);
+        }
+    }
+
+
+    /**
      * Start server
      */
     private void startServer() {
-        mutex.lock();
-        connected = true;
+        serverMutex.lock();
 
         Runnable server = () -> {
             DatagramPacket packet = new DatagramPacket(new byte[16416], 16416);
             log("Server started");
 
-            while (connected) {
+            // noinspection InfiniteLoopStatement
+            while (true) {
                 try {
                     serverSocket.receive(packet);
 
@@ -157,8 +208,10 @@ public class KademliaNode {
         };
 
         Thread thread = new Thread(server);
+        thread.setDaemon(true);
         thread.start();
-        mutex.unlock();
+
+        serverMutex.unlock();
     }
 
 
@@ -191,8 +244,16 @@ public class KademliaNode {
         if (message instanceof Store) {
             KademliaFile data = ((Store) message).getData();
             log("Store request received from " + message.getSource().getId() + " for " + data.getKey());
-            memory.store(data);
+            getMemory().store(data);
             Store response = ((Store) message).createResponse();
+            getDispatcher().sendMessage(response);
+        }
+
+        // FIND_DATA
+        if (message instanceof FindData) {
+            KademliaFileData filter = ((FindData) message).getFilter();
+            log("Search request received from " + message.getSource().getId() + " for " + filter);
+            FindData response = ((FindData) message).createResponse(getMemory().getFiles(filter));
             getDispatcher().sendMessage(response);
         }
     }
@@ -205,12 +266,12 @@ public class KademliaNode {
      */
     public void bootstrap(NND bootstrapNode) {
         startServer();
-        mutex.lock();
+        serverMutex.lock();
 
         if (!getInfo().equals(bootstrapNode)) {
             Ping message = new Ping(getInfo(), bootstrapNode);
 
-            getDispatcher().sendMessage(message, new Dispatcher.MessageListener() {
+            getDispatcher().sendMessage(message, new MessageListener() {
                 @Override
                 public void onSuccess(Message response) {
                     log("Ping response received from " + response.getSource().getId());
@@ -225,7 +286,7 @@ public class KademliaNode {
             });
         }
 
-        mutex.unlock();
+        serverMutex.unlock();
     }
 
 
@@ -238,7 +299,7 @@ public class KademliaNode {
         log("Pinging " + node.getId());
         Ping message = new Ping(getInfo(), node);
 
-        getDispatcher().sendMessage(message, new Dispatcher.MessageListener() {
+        getDispatcher().sendMessage(message, new MessageListener() {
             @Override
             public void onSuccess(Message response) {
                 log("Ping response received from " + response.getSource().getId());
@@ -257,10 +318,59 @@ public class KademliaNode {
     /**
      * Node lookup
      *
+     * @param   targetId                target node ID
+     * @param   endProcessListener      listener to be called when the lookup process is terminated
+     */
+    void lookup(NodeId targetId, LookupListener endProcessListener) {
+        // List check period
+        final int PERIOD = 1500;
+
+        // Start the lookup process
+        final List<NND> nearestNodes = lookup(targetId);
+
+        try {
+            Semaphore semaphore = new Semaphore(1);
+            semaphore.acquire();
+
+            final AtomicReference<List<NND>> oldNearestNodes = new AtomicReference<>();
+            oldNearestNodes.set(new ArrayList<>(nearestNodes));
+
+            // Schedule periodic check
+            Timer timer = new Timer();
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    // Check if the list has changed
+                    if (ListUtils.equalsIgnoreOrderAndRepetitions(nearestNodes, oldNearestNodes.get())) {
+                        timer.cancel();
+                        semaphore.release();
+                    } else {
+                        oldNearestNodes.set(new ArrayList<>(nearestNodes));
+                    }
+                }
+            }, PERIOD, PERIOD);
+
+            semaphore.acquire();
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // Pass the result to the listener
+        if (endProcessListener != null) {
+            List<NND> result = new ArrayList<>(nearestNodes);
+            endProcessListener.finish(Collections.unmodifiableList(result));
+        }
+    }
+
+
+    /**
+     * Node lookup
+     *
      * @param   targetId        target node ID
      * @return  nodes close to the target
      */
-    List<NND> lookup(NodeId targetId) {
+    private List<NND> lookup(NodeId targetId) {
         // Get the first alpha nodes to send the first requests
         List<NND> nearestNodes = getRoutingTable().getNearestNodes(targetId, SIMULTANEOUS_LOOKUPS);
         if (nearestNodes.size() == 0) return new ArrayList<>();
@@ -269,10 +379,10 @@ public class KademliaNode {
         // Send asynchronous requests
         List<NND> queriedNodes = new ArrayList<>();
 
-        nearestNodes.forEach(node -> CompletableFuture.runAsync(() -> {
+        nearestNodes.forEach(node -> {
             FindNode message = new FindNode(getInfo(), node, targetId);
 
-            getDispatcher().sendMessage(message, new Dispatcher.MessageListener() {
+            getDispatcher().sendMessage(message, new MessageListener() {
                 @Override
                 public void onSuccess(Message response) {
                     // Add the node to the queried ones
@@ -298,7 +408,7 @@ public class KademliaNode {
                     ping(node);
                 }
             });
-        }));
+        });
 
         return queriedNodes;
     }
@@ -313,13 +423,13 @@ public class KademliaNode {
      * @param   targetId            target node ID
      */
     private void recursiveLookup(List<NND> queriedNodes, List<NND> primaryGroup, List<NND> secondaryGroup, NodeId targetId) {
-        primaryGroup.forEach(recipient -> CompletableFuture.runAsync(() -> {
+        primaryGroup.forEach(recipient -> {
             if (queriedNodes.contains(recipient))
                 return;
 
             FindNode message = new FindNode(getInfo(), recipient, targetId);
 
-            getDispatcher().sendMessage(message, new Dispatcher.MessageListener() {
+            getDispatcher().sendMessage(message, new MessageListener() {
                 @Override
                 public void onSuccess(Message response) {
                     if (queriedNodes.contains(recipient))
@@ -368,7 +478,7 @@ public class KademliaNode {
                     ping(recipient);
                 }
             });
-        }));
+        });
     }
 
 
@@ -402,13 +512,33 @@ public class KademliaNode {
 
 
     /**
-     * Store data in this node
+     * Store file in this node and publish it on the network
      *
-     * @param   data        file to be stored
-     * @param   path        file path
+     * @param   file        file to be stored
      */
-    public void storeData(KademliaFile data, String path) {
-        memory.store(data, BUCKET_SIZE);
+    public void storeData(KademliaFile file) {
+        getMemory().store(file, BUCKET_SIZE);
+    }
+
+
+    /**
+     * Store files in this node and publish them on the network
+     *
+     * @param   files       files to be stored
+     */
+    public void storeData(KademliaFile... files) {
+        for (KademliaFile file : files)
+            storeData(file);
+    }
+
+
+    /**
+     * Store files in this node and publish them on the network
+     *
+     * @param   files       files to be stored
+     */
+    public void storeData(Collection<KademliaFile> files) {
+        files.forEach(this::storeData);
     }
 
 
@@ -418,7 +548,43 @@ public class KademliaNode {
      * @param   key         key the data is associated to
      */
     public void deleteData(NodeId key) {
-        memory.delete(key);
+        getMemory().delete(key);
+    }
+
+
+    /**
+     * Search files with given values
+     *
+     * @param   filter      search filters
+     * @throws  NodeNotConnectedException   if the node is not connected to the network
+     */
+    public void searchData(KademliaFileData filter, SearchListener listener) throws NodeNotConnectedException {
+        if (!isConnected())
+            throw new NodeNotConnectedException();
+
+
+        List<KademliaFile> files = new ArrayList<>();
+        List<KademliaFile> unmodifiableFilesList = Collections.unmodifiableList(files);
+        List<NND> knownNodes = getRoutingTable().getAllNodes();
+
+        knownNodes.forEach(node -> {
+            FindData message = new FindData(getInfo(), node, filter);
+
+            getDispatcher().sendMessage(message, new MessageListener() {
+                @Override
+                public void onSuccess(Message response) {
+                    if (response instanceof FindData) {
+                        files.addAll(((FindData) response).getFiles());
+                        listener.found(unmodifiableFilesList);
+                    }
+                }
+
+                @Override
+                public void onFailure() {
+                    ping(node);
+                }
+            });
+        });
     }
 
 
