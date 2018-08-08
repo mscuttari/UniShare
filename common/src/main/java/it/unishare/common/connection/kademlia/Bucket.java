@@ -79,7 +79,7 @@ class Bucket extends ArrayList<NND> {
         Ping ping = new Ping(parentNode.getInfo(), firstNode);
         log("Pinging " + firstNode.getId());
 
-        parentNode.getDispatcher().sendMessage(ping, new Dispatcher.MessageListener() {
+        parentNode.getDispatcher().sendMessage(ping, new MessageListener() {
             @Override
             public void onSuccess(Message response) {
                 log("Ping response received from " + response.getSource().getId());

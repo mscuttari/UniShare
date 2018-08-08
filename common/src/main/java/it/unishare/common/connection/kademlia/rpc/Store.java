@@ -3,7 +3,7 @@ package it.unishare.common.connection.kademlia.rpc;
 import it.unishare.common.connection.kademlia.KademliaFile;
 import it.unishare.common.connection.kademlia.NND;
 
-public final class Store extends Message<Store> {
+public final class Store extends Message {
 
     private static final long serialVersionUID = 5859381422717733578L;
 
@@ -23,7 +23,11 @@ public final class Store extends Message<Store> {
     }
 
 
-    @Override
+    /**
+     * Create response message
+     *
+     * @return  response message
+     */
     public Store createResponse() {
         Store response = new Store(getDestination(), getSource(), null);
         response.setId(getId());

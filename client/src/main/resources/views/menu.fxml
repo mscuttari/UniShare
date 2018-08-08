@@ -43,7 +43,8 @@
                 <SidebarButton fx:id="btnSearch"
                                icon="SEARCH"
                                onAction="#searchNotes"
-                               text="%search_notes" />
+                               text="%search_notes"
+                               selected="true" />
 
                 <SidebarButton fx:id="btnMyFiles"
                                icon="FILE"

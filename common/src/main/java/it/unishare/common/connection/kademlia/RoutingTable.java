@@ -2,7 +2,9 @@ package it.unishare.common.connection.kademlia;
 
 import it.unishare.common.utils.LogUtils;
 
+import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class RoutingTable {
 
@@ -26,6 +28,40 @@ class RoutingTable {
             buckets.add(new Bucket(k, parentNode));
 
         this.buckets = Collections.unmodifiableList(buckets);
+    }
+
+
+    /**
+     * Get nodes count
+     *
+     * @return  nodes count
+     */
+    private int getNodesCount() {
+        int count = 0;
+
+        for (Bucket bucket : buckets)
+            count += bucket.size();
+
+        return count;
+    }
+
+
+    /**
+     * Get all the known nodes, sorted by distance
+     *
+     * @return  unmodifiable list containing all the known nodes, sorted by distance
+     */
+    public List<NND> getAllNodes() {
+        List<NND> result = new ArrayList<>();
+        buckets.forEach(result::addAll);
+
+        result.sort((o1, o2) -> {
+            BigInteger firstDistance  = o1.getId().distance(parentNode.getInfo().getId());
+            BigInteger secondDistance = o2.getId().distance(parentNode.getInfo().getId());
+            return firstDistance.compareTo(secondDistance);
+        });
+
+        return Collections.unmodifiableList(result);
     }
 
 
@@ -60,9 +96,16 @@ class RoutingTable {
      * @param   node    node info
      */
     public void addNode(NND node) {
+        boolean alreadyKnownNode = getBucket(node).contains(node);
+
         log("Adding node " + node.getId());
         getBucket(node).add(node);
         log("Node " + node.getId() + " added");
+
+        if (!alreadyKnownNode)
+            parentNode.lookup(node.getId(), null);
+
+        updateConnectionStatus();
     }
 
 
@@ -73,6 +116,7 @@ class RoutingTable {
      */
     public void removeNode(NND node) {
         getBucket(node).remove(node);
+        updateConnectionStatus();
     }
 
 
@@ -86,6 +130,16 @@ class RoutingTable {
         NodeId xor = parentNode.getInfo().getId().xor(node.getId());
         int bucketNumber = xor.getLeadingZeros();
         return buckets.get(bucketNumber);
+    }
+
+
+    /**
+     * Update node connection status
+     *
+     * The node can be considered as connected if it has at least one node in its routing table
+     */
+    private void updateConnectionStatus() {
+        parentNode.setConnectionStatus(getNodesCount() > 0);
     }
 
 

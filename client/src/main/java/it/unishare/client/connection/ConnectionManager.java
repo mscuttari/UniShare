@@ -13,6 +13,8 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class ConnectionManager {
 
@@ -33,7 +35,7 @@ public class ConnectionManager {
      * Constructor
      */
     private ConnectionManager() {
-
+        nodeBootstrap();
     }
 
 
@@ -170,6 +172,29 @@ public class ConnectionManager {
      */
     public KademliaNode getNode() {
         return node;
+    }
+
+
+    /**
+     * Kademlia node bootstrap
+     */
+    private void nodeBootstrap() {
+        // Connection retry period
+        final int PERIOD = 30000;
+
+        try {
+            LogUtils.d(TAG, "Node bootstrap");
+            node.bootstrap(getServer().getKademliaInfo());
+        } catch (Exception e) {
+            LogUtils.e(TAG, "Node bootstrap failed. Retrying in " + (PERIOD / 1000) + "s");
+
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    nodeBootstrap();
+                }
+            }, PERIOD);
+        }
     }
 
 

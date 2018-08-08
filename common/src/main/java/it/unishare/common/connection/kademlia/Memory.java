@@ -5,9 +5,6 @@ import it.unishare.common.connection.kademlia.rpc.Store;
 import it.unishare.common.utils.LogUtils;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicInteger;
 
 class Memory {
 
@@ -39,12 +36,69 @@ class Memory {
 
 
     /**
-     * Get values
+     * Get all files
      *
-     * @return  all values
+     * @return  all files
      */
-    public Collection<KademliaFile> getFiles() {
+    public Collection<KademliaFile> getAllFiles() {
         return memory.values();
+    }
+
+
+    /**
+     * Get the files matching the filter
+     *
+     * @param   filter      filter
+     * @return  files matching the filter
+     */
+    public Collection<KademliaFile> getFiles(KademliaFileData filter) {
+        Collection<KademliaFile> allFiles = getAllFiles();
+
+        if (filter == null) {
+            return allFiles;
+        } else {
+            Collection<KademliaFile> result = new ArrayList<>();
+            log("All files: " + allFiles);
+
+            allFiles.forEach(file -> {
+                if (isFileMatchingFilter(file, filter)) {
+                    log("File found: " + file.getData());
+                    result.add(file);
+                }
+            });
+
+            return result;
+        }
+    }
+
+
+    /**
+     * Check if a file matches a filter
+     *
+     * @param   file        file
+     * @param   filter      filter
+     *
+     * @return  true if the file matches the filter; false otherwise
+     */
+    private static boolean isFileMatchingFilter(KademliaFile file, KademliaFileData filter) {
+        KademliaFileData fileData = file.getData();
+
+        if (filter.getTitle() != null && !filter.getTitle().equals(fileData.getTitle()))
+            return false;
+
+        if (filter.getUniversity() != null && !filter.getUniversity().equals(fileData.getUniversity()))
+            return false;
+
+        if (filter.getDepartment() != null && !filter.getDepartment().equals(fileData.getDepartment()))
+            return false;
+
+        if (filter.getCourse() != null && !filter.getCourse().equals(fileData.getCourse()))
+            return false;
+
+        if (filter.getTeacher() != null && !filter.getTeacher().equals(fileData.getTeacher()))
+            return false;
+
+        return true;
     }
 
 
@@ -111,43 +165,16 @@ class Memory {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                List<NND> nearestNodes = parentNode.lookup(data.getKey());
+                parentNode.waitForConnection();
 
-                // Wait for the list to populate
-                try {
-                    Semaphore semaphore = new Semaphore(1);
-                    semaphore.acquire();
-                    final AtomicInteger size = new AtomicInteger(nearestNodes.size());
-
-                    Timer timer = new Timer();
-                    timer.scheduleAtFixedRate(new TimerTask() {
-                        @Override
-                        public void run() {
-                            if (nearestNodes.size() == size.get()) {
-                                timer.cancel();
-                                semaphore.release();
-                            } else {
-                                size.set(nearestNodes.size());
-                            }
-                        }
-                    }, 1000, 1000);
-
-                    semaphore.acquire();
-
-                    // Copy the list of the nearest nodes in order to avoid changes
-                    List<NND> nearestNodesCopy = new ArrayList<>(nearestNodes);
-
-                    if (nearestNodesCopy.size() == 0)
-                        return;
-
-                    List<NND> nodes = nearestNodesCopy.subList(0, Math.min(nearestNodesCopy.size(), k));
-
+                parentNode.lookup(data.getKey(), nearestNodes -> {
                     // Publish key
                     log("Publishing key " + data.getKey() + " to its nearest nodes: " + nearestNodes.toString());
 
-                    nodes.forEach(node -> CompletableFuture.runAsync(() -> {
+                    nearestNodes.forEach(node -> {
                         Store message = new Store(parentNode.getInfo(), node, data);
-                        parentNode.getDispatcher().sendMessage(message, new Dispatcher.MessageListener() {
+
+                        parentNode.getDispatcher().sendMessage(message, new MessageListener() {
                             @Override
                             public void onSuccess(Message response) {
                                 parentNode.getRoutingTable().addNode(response.getSource());
@@ -158,12 +185,8 @@ class Memory {
                                 parentNode.ping(message.getDestination());
                             }
                         });
-                    }));
-
-                } catch (InterruptedException e) {
-                    log("Can't publish key " + data.getKey());
-                    e.printStackTrace();
-                }
+                    });
+                });
             }
         }, 0, REPUBLISH);
 

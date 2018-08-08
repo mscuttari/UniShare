@@ -1,6 +1,6 @@
 package it.unishare.server;
 
-import it.unishare.common.connection.kademlia.Node;
+import it.unishare.common.connection.kademlia.KademliaNode;
 import it.unishare.common.connection.kademlia.NND;
 import it.unishare.common.connection.server.RmiServerInterface;
 import it.unishare.common.exceptions.*;
@@ -17,10 +17,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import java.io.*;
-import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.UnknownHostException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -58,7 +54,7 @@ public class Server extends UnicastRemoteObject implements RmiServerInterface {
     private EntityManagerFactory entityManagerFactory;
 
     // Kademlia network
-    private Node node;
+    private KademliaNode node;
 
 
     /**
@@ -75,7 +71,7 @@ public class Server extends UnicastRemoteObject implements RmiServerInterface {
         this.entityManagerFactory = Persistence.createEntityManagerFactory(persistenceUnit);
 
         try {
-            this.node = new Node();
+            this.node = new KademliaNode();
             node.bootstrap(node.getInfo());
         } catch (Exception e) {
             LogUtils.e(TAG, "Can't initialize DHT network");

@@ -199,7 +199,7 @@ public class MyFilesController extends AbstractController implements Initializab
         FileUtils.copyFile(source, destination);
 
         DatabaseManager.getInstance().addFile(file);
-        //node.storeData(file, filePath);
+        node.storeData(file);
 
         // Show success message
         showShareSuccessMessage(resources.getString("file_added"));
@@ -207,6 +207,7 @@ public class MyFilesController extends AbstractController implements Initializab
         // Reset fields
         txtTitle.setText(null);
         txtUniversity.setText(null);
+        txtDepartment.setText(null);
         txtCourse.setText(null);
         txtTeacher.setText(null);
         txtFilePath.setText(null);
@@ -223,6 +224,7 @@ public class MyFilesController extends AbstractController implements Initializab
     private void reset() {
         txtTitle.setText(null);
         txtUniversity.setText(null);
+        txtDepartment.setText(null);
         txtCourse.setText(null);
         txtTeacher.setText(null);
         txtFilePath.setText(null);
@@ -324,6 +326,9 @@ public class MyFilesController extends AbstractController implements Initializab
 
         // Remove from the database
         DatabaseManager.getInstance().deleteFile(file.getKey().getBytes());
+
+        // Delete from the node memory
+        ConnectionManager.getInstance().getNode().deleteData(file.getKey());
 
         // Reload data
         loadFiles();

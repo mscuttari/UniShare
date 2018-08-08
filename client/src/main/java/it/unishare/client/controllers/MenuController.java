@@ -4,7 +4,6 @@ import it.unishare.client.connection.ConnectionManager;
 import it.unishare.client.layout.SidebarButton;
 import it.unishare.common.models.User;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -49,9 +48,6 @@ public class MenuController extends AbstractController {
                 oldValue.setSelected(true);
         });
 
-        // Select the network button
-        btnSearch.setSelected(true);
-
         // Login
         lblLogin.setOnMouseClicked(event -> showLoginScreen());
 
@@ -76,12 +72,13 @@ public class MenuController extends AbstractController {
         });
     }
 
+
     /**
      * Show "Search notes" page
      */
     @FXML
     private void searchNotes() {
-
+        setView("search");
     }
 
 

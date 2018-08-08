@@ -6,7 +6,7 @@ import it.unishare.common.connection.kademlia.NodeId;
 import java.util.Collections;
 import java.util.List;
 
-public final class FindNode extends Message<FindNode> {
+public final class FindNode extends Message {
 
     private static final long serialVersionUID = -8238542814034385851L;
 
@@ -26,7 +26,11 @@ public final class FindNode extends Message<FindNode> {
     }
 
 
-    @Override
+    /**
+     * Create response message
+     *
+     * @return  response message
+     */
     public FindNode createResponse() {
         FindNode response = new FindNode(getDestination(), getSource(), targetId);
         response.setId(getId());
