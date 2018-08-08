@@ -1,63 +1,31 @@
 package it.unishare.client.controllers;
 
-import com.sun.pdfview.PDFFile;
-import com.sun.pdfview.PDFPage;
 import it.unishare.client.connection.ConnectionManager;
-import it.unishare.client.database.DatabaseManager;
 import it.unishare.client.layout.GuiFile;
 import it.unishare.client.layout.MultipleIconButtonTableCell;
 import it.unishare.client.utils.FileUtils;
-import it.unishare.client.utils.Settings;
 import it.unishare.common.connection.kademlia.KademliaFile;
 import it.unishare.common.connection.kademlia.KademliaFileData;
 import it.unishare.common.connection.kademlia.KademliaNode;
-import it.unishare.common.connection.kademlia.SearchListener;
 import it.unishare.common.exceptions.NodeNotConnectedException;
-import it.unishare.common.utils.HashingUtils;
-import it.unishare.common.utils.LogUtils;
-import it.unishare.common.utils.Triple;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.IntegerBinding;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Side;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.stage.FileChooser;
-import javafx.util.Callback;
 import org.controlsfx.control.HiddenSidesPane;
 import org.controlsfx.control.textfield.TextFields;
 
-import java.awt.*;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.net.URL;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class SearchController extends AbstractController implements Initializable {
 
-    @FXML private HiddenSidesPane hiddenSidesPane;
+    @FXML
+    private HiddenSidesPane hiddenSidesPane;
 
     // Share new files
     @FXML private TextField txtTitle;
@@ -65,7 +33,6 @@ public class SearchController extends AbstractController implements Initializabl
     @FXML private TextField txtDepartment;
     @FXML private TextField txtCourse;
     @FXML private TextField txtTeacher;
-    @FXML private TextField txtFilePath;
 
     @FXML private Label lblMessage;
 
@@ -79,13 +46,6 @@ public class SearchController extends AbstractController implements Initializabl
     @FXML private TableColumn<GuiFile, String> columnCourse;
     @FXML private TableColumn<GuiFile, String> columnTeacher;
     @FXML private TableColumn<GuiFile, Void> columnActions;
-
-    // PDF viewer
-    @FXML private Pagination pdfViewer;
-    @FXML private ScrollPane scroller;
-
-    private ObjectProperty<PDFFile> currentFile = new SimpleObjectProperty<>();
-    private ObjectProperty<ImageView> currentImage = new SimpleObjectProperty<>();
 
     // Resources
     private ResourceBundle resources;
@@ -142,9 +102,9 @@ public class SearchController extends AbstractController implements Initializabl
     private void reset() {
         txtTitle.setText(null);
         txtUniversity.setText(null);
+        txtDepartment.setText(null);
         txtCourse.setText(null);
         txtTeacher.setText(null);
-        txtFilePath.setText(null);
         lblMessage.setText(null);
         tableFiles.setItems(null);
     }
@@ -156,7 +116,7 @@ public class SearchController extends AbstractController implements Initializabl
      * @param   files       files list
      * @return  GUI models list
      */
-    private static ObservableList<GuiFile> getGuiFilesList(List<KademliaFile> files) {
+    private static ObservableList<GuiFile> getGuiFilesList(Collection<KademliaFile> files) {
         ObservableList<GuiFile> result = FXCollections.observableArrayList();
         files.forEach(file -> result.add(new GuiFile(file)));
         return result;

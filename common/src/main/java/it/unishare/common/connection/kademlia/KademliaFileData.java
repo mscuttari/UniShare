@@ -33,6 +33,38 @@ public class KademliaFileData implements Serializable {
 
 
     @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof KademliaFileData))
+            return false;
+
+        KademliaFileData data = (KademliaFileData) obj;
+
+        if (getTitle() == null && data.getTitle() != null) return false;
+        if (!getTitle().equals(data.getTitle())) return false;
+
+        if (getUniversity() == null && data.getUniversity() != null) return false;
+        if (!getUniversity().equals(data.getUniversity())) return false;
+
+        if (getDepartment() == null && data.getDepartment() != null) return false;
+        if (!getDepartment().equals(data.getDepartment())) return false;
+
+        if (getCourse() == null && data.getCourse() != null) return false;
+        if (!getCourse().equals(data.getCourse())) return false;
+
+        if (getTeacher() == null && data.getTeacher() != null) return false;
+        if (!getTeacher().equals(data.getTeacher())) return false;
+
+        return true;
+    }
+
+
+    @Override
+    public int hashCode() {
+        return title == null ? 57 : title.hashCode();
+    }
+
+
+    @Override
     public String toString() {
         return "{" + title + ", " + university + ", " + department + ", " + course + ", " + teacher + "}";
     }

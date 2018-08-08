@@ -28,6 +28,21 @@ public class KademliaFile implements Serializable {
 
 
     @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof KademliaFile))
+            return false;
+
+        return getKey().equals(((KademliaFile) obj).getKey());
+    }
+
+
+    @Override
+    public int hashCode() {
+        return getKey().hashCode();
+    }
+
+
+    @Override
     public String toString() {
         return "{" + key + ", " + owner + ", " + data + "}";
     }

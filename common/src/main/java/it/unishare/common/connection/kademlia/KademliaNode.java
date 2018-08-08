@@ -562,9 +562,8 @@ public class KademliaNode {
         if (!isConnected())
             throw new NodeNotConnectedException();
 
-
-        List<KademliaFile> files = new ArrayList<>();
-        List<KademliaFile> unmodifiableFilesList = Collections.unmodifiableList(files);
+        Collection<KademliaFile> files = new HashSet<>();
+        Collection<KademliaFile> unmodifiableFilesList = Collections.unmodifiableCollection(files);
         List<NND> knownNodes = getRoutingTable().getAllNodes();
 
         knownNodes.forEach(node -> {
