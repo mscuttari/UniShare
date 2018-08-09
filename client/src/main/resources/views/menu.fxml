@@ -14,7 +14,6 @@
             styleClass="sidebar">
 
     <stylesheets>
-        <URL value="@../styles/default.css" />
         <URL value="@../styles/menu.css" />
     </stylesheets>
 
@@ -66,7 +65,8 @@
                        minHeight="30.0"
                        pickOnBounds="false">
 
-                <BorderPane fx:id="boxUser">
+                <BorderPane fx:id="boxUser"
+                            visible="false">
                     <center>
                         <Label fx:id="lblUser"
                                styleClass="lbl-user"

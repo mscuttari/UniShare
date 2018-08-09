@@ -165,4 +165,14 @@ public class User implements Serializable {
         this.lastName = lastName == null || lastName.isEmpty() ? null : lastName;
     }
 
+
+    /**
+     * Get full name (first name + last name)
+     *
+     * @return  full name
+     */
+    public String getFullName() {
+        return getFirstName() + " " + getLastName();
+    }
+
 }
