@@ -70,7 +70,7 @@
                 </VBox>
 
                 <VBox styleClass="box-section" spacing="10">
-                    <Label styleClass="title" text="%shared_files" />
+                    <Label styleClass="title" text="%search_results" />
 
                     <TableView fx:id="tableFiles">
 

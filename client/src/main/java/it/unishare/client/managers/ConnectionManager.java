@@ -220,7 +220,7 @@ public class ConnectionManager {
         } catch (Exception e) {
             LogUtils.e(TAG, "Node bootstrap failed. Retrying in " + (PERIOD / 1000) + "s");
 
-            new Timer().schedule(new TimerTask() {
+            new Timer(true).schedule(new TimerTask() {
                 @Override
                 public void run() {
                     nodeBootstrap();

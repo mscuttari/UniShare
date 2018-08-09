@@ -5,6 +5,7 @@ import it.unishare.client.managers.DownloadManager;
 import it.unishare.client.layout.GuiFile;
 import it.unishare.client.layout.MultipleIconButtonTableCell;
 import it.unishare.client.utils.FileUtils;
+import it.unishare.client.utils.GUIUtils;
 import it.unishare.common.connection.kademlia.KademliaFile;
 import it.unishare.common.connection.kademlia.KademliaFileData;
 import it.unishare.common.connection.kademlia.KademliaNode;
@@ -100,7 +101,11 @@ public class SearchController extends AbstractController implements Initializabl
         KademliaNode node = ConnectionManager.getInstance().getNode();
 
         try {
-            node.searchData(fileData, files -> tableFiles.setItems(getGuiFilesList(files)));
+            node.searchData(fileData, files -> {
+                tableFiles.setItems(getGuiFilesList(files));
+                GUIUtils.autoResizeColumns(tableFiles);
+            });
+
         } catch (NodeNotConnectedException e) {
             showErrorMessage(resources.getString("client_not_connected"));
         }
@@ -112,11 +117,12 @@ public class SearchController extends AbstractController implements Initializabl
      */
     @FXML
     private void reset() {
-        txtTitle.setText(null);
-        txtUniversity.setText(null);
-        txtDepartment.setText(null);
-        txtCourse.setText(null);
-        txtTeacher.setText(null);
+        txtTitle.clear();
+        txtTitle.clear();
+        txtUniversity.clear();
+        txtDepartment.clear();
+        txtCourse.clear();
+        txtTeacher.clear();
         lblMessage.setText(null);
         tableFiles.setItems(null);
     }

@@ -129,7 +129,7 @@ class Memory {
         log("Key " + data.getKey() + " stored");
 
         // Schedule expiration after an hour
-        Timer timer = new Timer();
+        Timer timer = new Timer(true);
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -164,7 +164,7 @@ class Memory {
     private void publishKey(KademliaFile data, int k) {
         final int REPUBLISH = 60 * 60 * 1000;
 
-        Timer timer = new Timer();
+        Timer timer = new Timer(true);
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {

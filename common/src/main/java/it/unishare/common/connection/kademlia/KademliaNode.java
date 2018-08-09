@@ -386,10 +386,7 @@ public class KademliaNode {
      * @param   node    node to be pinged
      */
     void ping(NND node) {
-        log("Pinging " + node.getId());
-        Ping message = new Ping(getInfo(), node);
-
-        getDispatcher().sendMessage(message, new MessageListener() {
+        ping(node, new MessageListener() {
             @Override
             public void onSuccess(Message response) {
                 log("Ping response received from " + response.getSource().getId());
@@ -398,10 +395,17 @@ public class KademliaNode {
 
             @Override
             public void onFailure() {
-                log("Can't ping " + message.getDestination().getId());
+                log("Can't ping " + node.getId());
                 getRoutingTable().removeNode(node);
             }
         });
+    }
+
+
+    private void ping(NND node, MessageListener listener) {
+        log("Pinging " + node.getId());
+        Ping message = new Ping(getInfo(), node);
+        getDispatcher().sendMessage(message, listener);
     }
 
 
@@ -426,7 +430,7 @@ public class KademliaNode {
             oldNearestNodes.set(new ArrayList<>(nearestNodes));
 
             // Schedule periodic check
-            Timer timer = new Timer();
+            Timer timer = new Timer(true);
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
@@ -671,17 +675,23 @@ public class KademliaNode {
                 @Override
                 public void onSuccess(Message response) {
                     if (response instanceof FindData) {
-                        boolean newFiles = false;
-
                         for (KademliaFile file : ((FindData) response).getFiles()) {
-                            if (!(file.getOwner().equals(getInfo()))) {
-                                newFiles = true;
-                                files.add(file);
-                            }
-                        }
+                            if ((file.getOwner().equals(getInfo())))
+                                continue;
 
-                        if (newFiles) {
-                            listener.found(unmodifiableFilesList);
+                            // Check if the node is online
+                            ping(file.getOwner(), new MessageListener() {
+                                @Override
+                                public void onSuccess(Message response) {
+                                    listener.found(unmodifiableFilesList);
+                                    files.add(file);
+                                }
+
+                                @Override
+                                public void onFailure() {
+
+                                }
+                            });
                         }
                     }
                 }

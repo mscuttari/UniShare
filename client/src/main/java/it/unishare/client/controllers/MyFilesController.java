@@ -8,6 +8,7 @@ import it.unishare.client.layout.GuiFile;
 import it.unishare.client.layout.MultipleIconButtonTableCell;
 import it.unishare.client.managers.FileManager;
 import it.unishare.client.utils.FileUtils;
+import it.unishare.client.utils.GUIUtils;
 import it.unishare.common.connection.kademlia.KademliaFile;
 import it.unishare.common.connection.kademlia.KademliaFileData;
 import it.unishare.common.connection.kademlia.KademliaNode;
@@ -208,12 +209,12 @@ public class MyFilesController extends AbstractController implements Initializab
         showShareSuccessMessage(resources.getString("file_added"));
 
         // Reset fields
-        txtTitle.setText(null);
-        txtUniversity.setText(null);
-        txtDepartment.setText(null);
-        txtCourse.setText(null);
-        txtTeacher.setText(null);
-        txtFilePath.setText(null);
+        txtTitle.clear();
+        txtUniversity.clear();
+        txtDepartment.clear();
+        txtCourse.clear();
+        txtTeacher.clear();
+        txtFilePath.clear();
 
         // Reload data
         loadFiles();
@@ -225,12 +226,12 @@ public class MyFilesController extends AbstractController implements Initializab
      */
     @FXML
     private void reset() {
-        txtTitle.setText(null);
-        txtUniversity.setText(null);
-        txtDepartment.setText(null);
-        txtCourse.setText(null);
-        txtTeacher.setText(null);
-        txtFilePath.setText(null);
+        txtTitle.clear();
+        txtUniversity.clear();
+        txtDepartment.clear();
+        txtCourse.clear();
+        txtTeacher.clear();
+        txtFilePath.clear();
         lblMessage.setText(null);
     }
 
@@ -247,6 +248,7 @@ public class MyFilesController extends AbstractController implements Initializab
             guiFiles.add(new GuiFile(file));
 
         tableFiles.setItems(guiFiles);
+        GUIUtils.autoResizeColumns(tableFiles);
     }
 
 
