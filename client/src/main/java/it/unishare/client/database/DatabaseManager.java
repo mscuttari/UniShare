@@ -79,6 +79,7 @@ public class DatabaseManager {
     private void initializeDatabase() {
         String sql = "CREATE TABLE IF NOT EXISTS my_files(" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "user_id INTEGER NOT NULL," +
                     "key BLOB NOT NULL," +
                     "title TEXT NOT NULL," +
                     "university TEXT NOT NULL," +
@@ -102,14 +103,17 @@ public class DatabaseManager {
     /**
      * Get all files
      */
-    public List<KademliaFile> getAllFiles() {
+    public List<KademliaFile> getUserFiles(long userId) {
         List<KademliaFile> result = new ArrayList<>();
-        String sql = "SELECT key, title, university, department, course, teacher FROM my_files";
+        String sql = "SELECT key, title, university, department, course, teacher FROM my_files WHERE user_id = ?";
 
         try {
             Connection connection = getConnection();
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(sql);
+
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setLong(1, userId);
+
+            ResultSet resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
                 KademliaFileData data = new KademliaFileData(
@@ -129,6 +133,8 @@ public class DatabaseManager {
                 result.add(file);
             }
 
+            connection.close();
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -142,19 +148,20 @@ public class DatabaseManager {
      *
      * @param   file    file
      */
-    public void addFile(KademliaFile file) {
-        String sql = "INSERT INTO my_files(key, title, university, department, course, teacher) VALUES(?,?,?,?,?,?)";
+    public void addFile(long userId, KademliaFile file) {
+        String sql = "INSERT INTO my_files(user_id, key, title, university, department, course, teacher) VALUES(?, ?, ?, ?, ?, ?, ?)";
 
         try {
             Connection connection = getConnection();
 
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setBytes(1, file.getKey().getBytes());
-            statement.setString(2, file.getData().getTitle());
-            statement.setString(3, file.getData().getUniversity());
-            statement.setString(4, file.getData().getDepartment());
-            statement.setString(5, file.getData().getCourse());
-            statement.setString(6, file.getData().getTeacher());
+            statement.setLong(1, userId);
+            statement.setBytes(2, file.getKey().getBytes());
+            statement.setString(3, file.getData().getTitle());
+            statement.setString(4, file.getData().getUniversity());
+            statement.setString(5, file.getData().getDepartment());
+            statement.setString(6, file.getData().getCourse());
+            statement.setString(7, file.getData().getTeacher());
 
             statement.executeUpdate();
             connection.close();
@@ -169,14 +176,15 @@ public class DatabaseManager {
      *
      * @param   key     key
      */
-    public void deleteFile(byte[] key) {
-        String sql = "DELETE FROM my_files WHERE key = ?";
+    public void deleteFile(long userId, byte[] key) {
+        String sql = "DELETE FROM my_files WHERE user_id = ? AND key = ?";
 
         try {
             Connection connection = getConnection();
 
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setBytes(1, key);
+            statement.setLong(1, userId);
+            statement.setBytes(2, key);
 
             statement.executeUpdate();
             connection.close();

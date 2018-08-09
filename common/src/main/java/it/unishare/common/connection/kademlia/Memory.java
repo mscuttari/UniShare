@@ -219,6 +219,18 @@ class Memory {
 
 
     /**
+     * Delete all the owned files
+     */
+    public void deleteAll() {
+        Collection<NodeId> ownedFiles = republishTimers.keySet();
+
+        for (NodeId file : ownedFiles) {
+            delete(file);
+        }
+    }
+
+
+    /**
      * Log message
      *
      * @param   message     message to be logged

@@ -1,5 +1,7 @@
 package it.unishare.client.connection;
 
+import it.unishare.client.database.DatabaseManager;
+import it.unishare.common.connection.kademlia.KademliaFile;
 import it.unishare.common.connection.kademlia.KademliaNode;
 import it.unishare.common.connection.server.RmiServerInterface;
 import it.unishare.common.exceptions.*;
@@ -7,13 +9,17 @@ import it.unishare.common.models.User;
 import it.unishare.common.utils.LogUtils;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.Collection;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.prefs.Preferences;
 
 public class ConnectionManager {
 
@@ -35,6 +41,18 @@ public class ConnectionManager {
      */
     private ConnectionManager() {
         nodeBootstrap();
+
+        logged.addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                // Logged in
+                Collection<KademliaFile> files = DatabaseManager.getInstance().getUserFiles(user.getId());
+                node.storeFiles(files);
+
+            } else {
+                // Logged out
+                node.deleteAllFiles();
+            }
+        });
     }
 
 
@@ -96,6 +114,26 @@ public class ConnectionManager {
 
 
     /**
+     * Try automatic login if the user logged in during the previous session
+     */
+    public void tryAutomaticLogin() {
+        Preferences preferences = Preferences.userNodeForPackage(ConnectionManager.class);
+
+        String email = preferences.get("email", null);
+        String password = preferences.get("password", null);
+
+        if (email != null && password != null) {
+            try {
+                login(email, password);
+            } catch (RemoteException | MissingFieldException | NotFoundException | WrongPasswordException e) {
+                preferences.remove("email");
+                preferences.remove("password");
+            }
+        }
+    }
+
+
+    /**
      * Login
      *
      * @param   email       email
@@ -116,6 +154,11 @@ public class ConnectionManager {
         try {
             this.user = getServer().login(credentials);
             this.logged.set(true);
+
+            Preferences preferences = Preferences.userNodeForPackage(ConnectionManager.class);
+            preferences.put("email", email);
+            preferences.put("password", password);
+
             LogUtils.d(TAG, "Logged in");
 
         } catch (NotBoundException | MalformedURLException e) {

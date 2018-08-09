@@ -516,7 +516,7 @@ public class KademliaNode {
      *
      * @param   file        file to be stored
      */
-    public void storeData(KademliaFile file) {
+    public void storeFile(KademliaFile file) {
         getMemory().store(file, BUCKET_SIZE);
     }
 
@@ -526,9 +526,9 @@ public class KademliaNode {
      *
      * @param   files       files to be stored
      */
-    public void storeData(KademliaFile... files) {
+    public void storeFiles(KademliaFile... files) {
         for (KademliaFile file : files)
-            storeData(file);
+            storeFile(file);
     }
 
 
@@ -537,18 +537,26 @@ public class KademliaNode {
      *
      * @param   files       files to be stored
      */
-    public void storeData(Collection<KademliaFile> files) {
-        files.forEach(this::storeData);
+    public void storeFiles(Collection<KademliaFile> files) {
+        files.forEach(this::storeFile);
     }
 
 
     /**
-     * Delete data from this node
+     * Delete file from this node
      *
      * @param   key         key the data is associated to
      */
-    public void deleteData(NodeId key) {
+    public void deleteFile(NodeId key) {
         getMemory().delete(key);
+    }
+
+
+    /**
+     * Delete all the owned files by this node
+     */
+    public void deleteAllFiles() {
+        getMemory().deleteAll();
     }
 
 

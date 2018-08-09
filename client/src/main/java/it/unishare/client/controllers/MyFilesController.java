@@ -11,6 +11,7 @@ import it.unishare.client.utils.Settings;
 import it.unishare.common.connection.kademlia.KademliaFile;
 import it.unishare.common.connection.kademlia.KademliaFileData;
 import it.unishare.common.connection.kademlia.KademliaNode;
+import it.unishare.common.models.User;
 import it.unishare.common.utils.HashingUtils;
 import it.unishare.common.utils.Triple;
 import javafx.beans.binding.Bindings;
@@ -198,8 +199,9 @@ public class MyFilesController extends AbstractController implements Initializab
         File destination = new File(getFilePath(file));
         FileUtils.copyFile(source, destination);
 
-        DatabaseManager.getInstance().addFile(file);
-        node.storeData(file);
+        User user = ConnectionManager.getInstance().getUser();
+        DatabaseManager.getInstance().addFile(user.getId(), file);
+        node.storeFile(file);
 
         // Show success message
         showShareSuccessMessage(resources.getString("file_added"));
@@ -236,7 +238,8 @@ public class MyFilesController extends AbstractController implements Initializab
      * Populate the shared files table
      */
     private void loadFiles() {
-        List<KademliaFile> files = DatabaseManager.getInstance().getAllFiles();
+        User user = ConnectionManager.getInstance().getUser();
+        List<KademliaFile> files = DatabaseManager.getInstance().getUserFiles(user.getId());
         ObservableList<GuiFile> guiFiles = FXCollections.observableArrayList();
 
         for (KademliaFile file : files)
@@ -325,10 +328,11 @@ public class MyFilesController extends AbstractController implements Initializab
         }
 
         // Remove from the database
-        DatabaseManager.getInstance().deleteFile(file.getKey().getBytes());
+        User user = ConnectionManager.getInstance().getUser();
+        DatabaseManager.getInstance().deleteFile(user.getId(), file.getKey().getBytes());
 
         // Delete from the node memory
-        ConnectionManager.getInstance().getNode().deleteData(file.getKey());
+        ConnectionManager.getInstance().getNode().deleteFile(file.getKey());
 
         // Reload data
         loadFiles();
@@ -343,7 +347,8 @@ public class MyFilesController extends AbstractController implements Initializab
      */
     private static String getFilePath(KademliaFile file) {
         String fileName = file.getKey().toString() + ".pdf";
-        return Settings.getDataPath() + File.separator + fileName;
+        User user = ConnectionManager.getInstance().getUser();
+        return Settings.getDataPath() + File.separator + user.getId() + "_" + fileName;
     }
 
 
