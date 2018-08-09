@@ -6,7 +6,6 @@ import it.unishare.common.exceptions.NotFoundException;
 import it.unishare.common.exceptions.WrongPasswordException;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;

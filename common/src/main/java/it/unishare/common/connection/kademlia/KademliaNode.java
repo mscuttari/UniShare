@@ -573,8 +573,18 @@ public class KademliaNode {
                 @Override
                 public void onSuccess(Message response) {
                     if (response instanceof FindData) {
-                        files.addAll(((FindData) response).getFiles());
-                        listener.found(unmodifiableFilesList);
+                        boolean newFiles = false;
+
+                        for (KademliaFile file : ((FindData) response).getFiles()) {
+                            if (!(file.getOwner().equals(getInfo()))) {
+                                newFiles = true;
+                                files.add(file);
+                            }
+                        }
+
+                        if (newFiles) {
+                            listener.found(unmodifiableFilesList);
+                        }
                     }
                 }
 

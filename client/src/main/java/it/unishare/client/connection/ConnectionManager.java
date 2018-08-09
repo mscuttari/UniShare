@@ -1,7 +1,6 @@
 package it.unishare.client.connection;
 
 import it.unishare.common.connection.kademlia.KademliaNode;
-import it.unishare.common.connection.kademlia.NND;
 import it.unishare.common.connection.server.RmiServerInterface;
 import it.unishare.common.exceptions.*;
 import it.unishare.common.models.User;
@@ -195,24 +194,6 @@ public class ConnectionManager {
                 }
             }, PERIOD);
         }
-    }
-
-
-    /**
-     * Get Kademlia access point information
-     *
-     * @return  access point information
-     */
-    private NND getKademliaBootstrapNodeInfo() {
-        try {
-            return getServer().getKademliaInfo();
-
-        } catch (RemoteException | NotBoundException | MalformedURLException e) {
-            LogUtils.e(TAG, "Can't get Kademlia bootstrap node information");
-            e.printStackTrace();
-        }
-
-        return null;
     }
 
 }
