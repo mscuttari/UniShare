@@ -1,8 +1,9 @@
 package it.unishare.client.controllers;
 
-import it.unishare.client.connection.ConnectionManager;
+import it.unishare.client.managers.ConnectionManager;
 import it.unishare.client.layout.SidebarButton;
 import it.unishare.common.models.User;
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
@@ -17,6 +18,7 @@ public class MenuController extends AbstractController {
     @FXML private BorderPane rootPane;
 
     @FXML private SidebarButton btnSearch;
+    @FXML private SidebarButton btnDownloads;
     @FXML private SidebarButton btnMyFiles;
     @FXML private SidebarButton btnSettings;
 
@@ -39,6 +41,7 @@ public class MenuController extends AbstractController {
         ToggleGroup toggleGroup = new ToggleGroup();
 
         btnSearch.setToggleGroup(toggleGroup);
+        btnDownloads.setToggleGroup(toggleGroup);
         btnMyFiles.setToggleGroup(toggleGroup);
         btnSettings.setToggleGroup(toggleGroup);
 
@@ -59,17 +62,9 @@ public class MenuController extends AbstractController {
         setTooltip(btnLogout, resources, "logout");
 
         // Login status
-        setLoginEnabled(!ConnectionManager.getInstance().isLogged());
-
-        ConnectionManager.getInstance().loggedProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue) {
-                User user = ConnectionManager.getInstance().getUser();
-                lblUser.setText(user.getFirstName() + " " + user.getLastName());
-                setLoginEnabled(false);
-            } else {
-                setLoginEnabled(true);
-            }
-        });
+        btnDownloads.disableProperty().bind(Bindings.not(ConnectionManager.getInstance().loggedProperty()));
+        btnMyFiles.disableProperty().bind(Bindings.not(ConnectionManager.getInstance().loggedProperty()));
+        ConnectionManager.getInstance().loggedProperty().addListener((observable, oldValue, newValue) -> checkLoginStatus(newValue));
     }
 
 
@@ -79,6 +74,15 @@ public class MenuController extends AbstractController {
     @FXML
     private void searchNotes() {
         setView("search");
+    }
+
+
+    /**
+     * Show "Downloads" page
+     */
+    @FXML
+    private void downloads() {
+        setView("downloads");
     }
 
 
@@ -124,21 +128,37 @@ public class MenuController extends AbstractController {
 
 
     /**
-     * Enable the login button
+     * Check the login status and consequentially enable or disable some features
      *
-     * @param   enabled     whether the user has not logged in (true) or it is already logged in (false)
+     * @param   logged      whether the user has logged in (true) or not (false)
      */
-    private void setLoginEnabled(boolean enabled) {
-        if (enabled) {
-            boxUser.setVisible(false);
-            lblLogin.setVisible(true);
-            lblSignup.setVisible(true);
-            boxLogin.setVisible(true);
-        } else {
+    private void checkLoginStatus(boolean logged) {
+        if (logged) {
+            // Hide the login box
             boxLogin.setVisible(false);
             lblLogin.setVisible(false);
             lblSignup.setVisible(false);
+
+            // Show the user info
+            User user = ConnectionManager.getInstance().getUser();
+            lblUser.setText(user.getFullName());
             boxUser.setVisible(true);
+
+        } else {
+            // Hide the user info
+            boxUser.setVisible(false);
+
+            // Show the login box
+            lblLogin.setVisible(true);
+            lblSignup.setVisible(true);
+            boxLogin.setVisible(true);
+
+            // If the last shown page is a private one, show the "Search files" page
+            if (btnDownloads.isSelected() || btnMyFiles.isSelected()) {
+                searchNotes();
+            }
+
+            btnSearch.setSelected(true);
         }
     }
 

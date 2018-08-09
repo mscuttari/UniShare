@@ -63,7 +63,7 @@ public class Server extends UnicastRemoteObject implements RmiServerInterface {
      * @param   address         server address
      * @param   port            server port
      *
-     * @throws  RemoteException in case of connection error
+     * @throws  RemoteException in case of managers error
      */
     public Server(String address, int port) throws RemoteException {
         this.address = address;
@@ -107,12 +107,19 @@ public class Server extends UnicastRemoteObject implements RmiServerInterface {
 
         // Search user with specified email
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        User existingUser = entityManager.find(User.class, user.getEmail());
 
-        if (existingUser == null) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<User> cq = cb.createQuery(User.class);
+        Root<User> userRoot = cq.from(User.class);
+        cq.where(cb.equal(userRoot.get("email"), user.getEmail()));
+        List<User> users = entityManager.createQuery(cq).getResultList();
+
+        if (users == null || users.size() == 0) {
             LogUtils.d(TAG, "User " + user.getEmail() + " not found");
             throw new NotFoundException();
         }
+
+        User existingUser = users.get(0);
 
         // Check password hash
         String hashedPassword = encryptPassword(user.getPassword(), existingUser.getSalt());

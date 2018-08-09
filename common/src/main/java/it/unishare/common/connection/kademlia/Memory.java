@@ -86,6 +86,9 @@ class Memory {
         if (filter.getTitle() != null && !filter.getTitle().equals(fileData.getTitle()))
             return false;
 
+        if (filter.getAuthor() != null && !filter.getAuthor().equals(fileData.getAuthor()))
+            return false;
+
         if (filter.getUniversity() != null && !filter.getUniversity().equals(fileData.getUniversity()))
             return false;
 
@@ -126,7 +129,7 @@ class Memory {
         log("Key " + data.getKey() + " stored");
 
         // Schedule expiration after an hour
-        Timer timer = new Timer();
+        Timer timer = new Timer(true);
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -161,7 +164,7 @@ class Memory {
     private void publishKey(KademliaFile data, int k) {
         final int REPUBLISH = 60 * 60 * 1000;
 
-        Timer timer = new Timer();
+        Timer timer = new Timer(true);
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -219,12 +222,24 @@ class Memory {
 
 
     /**
+     * Delete all the owned files
+     */
+    public void deleteAll() {
+        Collection<NodeId> ownedFiles = republishTimers.keySet();
+
+        for (NodeId file : ownedFiles) {
+            delete(file);
+        }
+    }
+
+
+    /**
      * Log message
      *
      * @param   message     message to be logged
      */
     private void log(String message) {
-        LogUtils.d("Node [" + parentNode.getInfo().getId() + "]", message);
+        parentNode.log(message);
     }
 
 }

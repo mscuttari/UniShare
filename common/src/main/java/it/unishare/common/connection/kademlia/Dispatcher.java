@@ -72,7 +72,7 @@ class Dispatcher {
             }
 
             if (listener != null) {
-                new Timer().schedule(new TimerTask() {
+                new Timer(true).schedule(new TimerTask() {
                     @Override
                     public void run() {
                         if (listeners.containsKey(message))

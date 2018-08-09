@@ -1,26 +1,27 @@
 package it.unishare.common.connection.kademlia;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import it.unishare.common.connection.kademlia.rpc.*;
 import it.unishare.common.exceptions.NodeNotConnectedException;
 import it.unishare.common.utils.ListUtils;
 import it.unishare.common.utils.LogUtils;
 import it.unishare.common.utils.Pair;
-import sun.awt.Mutex;
 
 import java.io.*;
 import java.math.BigInteger;
 import java.net.*;
 import java.util.*;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class KademliaNode {
 
     // Connection
-    private DatagramSocket serverSocket;
+    private DatagramSocket messagesServerSocket;
 
-    private Mutex serverMutex = new Mutex();
-    private Semaphore connectionStatus = new Semaphore(0);
+    private ExecutorService executorService, downloadExecutorService, uploadExecutorService;
+    private Semaphore serverSemaphore = new Semaphore(0);
+    private Semaphore connectionSemaphore = new Semaphore(0);
 
     // Configuration
     private static final int BUCKET_SIZE = 20;
@@ -31,6 +32,41 @@ public class KademliaNode {
     private Dispatcher dispatcher;
     private RoutingTable routingTable;
     private Memory memory;
+
+    // Files
+    private FileProvider fileProvider;
+
+
+    /**
+     * Constructor
+     */
+    public KademliaNode() {
+        this(null);
+    }
+
+
+    /**
+     * Constructor
+     */
+    public KademliaNode(FileProvider fileProvider) {
+        this.fileProvider = fileProvider;
+
+        this.executorService = Executors.newFixedThreadPool(2, r -> {
+            Thread thread = new Thread(r);
+            thread.setDaemon(true);
+            return thread;
+        });
+
+        this.downloadExecutorService = MoreExecutors.getExitingExecutorService(
+                (ThreadPoolExecutor) Executors.newCachedThreadPool(),
+                Integer.MAX_VALUE, TimeUnit.DAYS
+        );
+
+        this.uploadExecutorService = MoreExecutors.getExitingExecutorService(
+                (ThreadPoolExecutor) Executors.newCachedThreadPool(),
+                Integer.MAX_VALUE, TimeUnit.DAYS
+        );
+    }
 
 
     /**
@@ -51,20 +87,20 @@ public class KademliaNode {
 
 
     /**
-     * Get the server socket
+     * Get the messages server socket
      *
-     * @return  server socket
+     * @return  messages server socket
      */
-    private DatagramSocket getServerSocket() {
-        if (serverSocket == null) {
+    private DatagramSocket getMessagesServerSocket() {
+        if (messagesServerSocket == null) {
             try {
-                serverSocket = new DatagramSocket();
+                messagesServerSocket = new DatagramSocket();
             } catch (SocketException e) {
                 e.printStackTrace();
             }
         }
 
-        return serverSocket;
+        return messagesServerSocket;
     }
 
 
@@ -92,9 +128,9 @@ public class KademliaNode {
      * @return  node info
      */
     public NND getInfo() {
-        if (info == null && getServerSocket() != null) {
+        if (info == null && getMessagesServerSocket() != null) {
             try {
-                info = new NND(getServerIP(), getServerSocket().getLocalPort());
+                info = new NND(getServerIP(), getMessagesServerSocket().getLocalPort());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -133,12 +169,32 @@ public class KademliaNode {
 
 
     /**
+     * Get file provider
+     *
+     * @return  file provider
+     */
+    FileProvider getFileProvider() {
+        return fileProvider;
+    }
+
+
+    /**
+     * Set file provider
+     *
+     * @param   fileProvider    file provider
+     */
+    public void setFileProvider(FileProvider fileProvider) {
+        this.fileProvider = fileProvider;
+    }
+
+
+    /**
      * Check whether the node is connected to the DHT network
      *
      * @return  true if connected; false otherwise
      */
     private boolean isConnected() {
-        return connectionStatus.availablePermits() > 0;
+        return connectionSemaphore.availablePermits() > 0;
     }
 
 
@@ -147,8 +203,8 @@ public class KademliaNode {
      */
     void waitForConnection() {
         try {
-            connectionStatus.acquire();
-            connectionStatus.release();
+            connectionSemaphore.acquire();
+            connectionSemaphore.release();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -156,16 +212,37 @@ public class KademliaNode {
 
 
     /**
-     * Set connection status
+     * Set the managers status
      *
      * @param   connected   true to set the node as connected to the network; false to set it as disconnected
      */
     void setConnectionStatus(boolean connected) {
-        connectionStatus.drainPermits();
+        connectionSemaphore.drainPermits();
 
         if (connected) {
-            connectionStatus.release(Integer.MAX_VALUE);
+            connectionSemaphore.release(Integer.MAX_VALUE);
+        } else {
+            resetConnection();
         }
+    }
+
+
+    /**
+     * Reset managers
+     */
+    private void resetConnection() {
+        executorService.shutdownNow();
+
+        // Close the messages server socket
+        if (messagesServerSocket != null && !messagesServerSocket.isClosed())
+            messagesServerSocket.close();
+
+        messagesServerSocket = null;
+
+        // Close the file server socket
+
+
+        info = null;
     }
 
 
@@ -173,16 +250,16 @@ public class KademliaNode {
      * Start server
      */
     private void startServer() {
-        serverMutex.lock();
-
-        Runnable server = () -> {
+        // Response server
+        executorService.submit(() -> {
             DatagramPacket packet = new DatagramPacket(new byte[16416], 16416);
             log("Server started");
+            serverSemaphore.release();
 
             // noinspection InfiniteLoopStatement
             while (true) {
                 try {
-                    serverSocket.receive(packet);
+                    getMessagesServerSocket().receive(packet);
 
                     byte[] data = packet.getData();
                     ByteArrayInputStream byteInputStream = new ByteArrayInputStream(data);
@@ -201,17 +278,27 @@ public class KademliaNode {
                         }
                     }
 
-                } catch (IOException | ClassNotFoundException ex) {
-                    ex.printStackTrace();
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
                 }
             }
-        };
+        });
 
-        Thread thread = new Thread(server);
-        thread.setDaemon(true);
-        thread.start();
+        // File server
+        executorService.submit(() -> {
+            try {
+                ServerSocket fileServerSocket = new ServerSocket(getMessagesServerSocket().getLocalPort());
 
-        serverMutex.unlock();
+                // noinspection InfiniteLoopStatement
+                while (true) {
+                    Socket socket = fileServerSocket.accept();
+                    uploadExecutorService.submit(new Uploader(KademliaNode.this, socket));
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
 
@@ -266,7 +353,12 @@ public class KademliaNode {
      */
     public void bootstrap(NND bootstrapNode) {
         startServer();
-        serverMutex.lock();
+
+        try {
+            serverSemaphore.acquire();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         if (!getInfo().equals(bootstrapNode)) {
             Ping message = new Ping(getInfo(), bootstrapNode);
@@ -285,8 +377,6 @@ public class KademliaNode {
                 }
             });
         }
-
-        serverMutex.unlock();
     }
 
 
@@ -296,10 +386,7 @@ public class KademliaNode {
      * @param   node    node to be pinged
      */
     void ping(NND node) {
-        log("Pinging " + node.getId());
-        Ping message = new Ping(getInfo(), node);
-
-        getDispatcher().sendMessage(message, new MessageListener() {
+        ping(node, new MessageListener() {
             @Override
             public void onSuccess(Message response) {
                 log("Ping response received from " + response.getSource().getId());
@@ -308,10 +395,17 @@ public class KademliaNode {
 
             @Override
             public void onFailure() {
-                log("Can't ping " + message.getDestination().getId());
+                log("Can't ping " + node.getId());
                 getRoutingTable().removeNode(node);
             }
         });
+    }
+
+
+    private void ping(NND node, MessageListener listener) {
+        log("Pinging " + node.getId());
+        Ping message = new Ping(getInfo(), node);
+        getDispatcher().sendMessage(message, listener);
     }
 
 
@@ -336,7 +430,7 @@ public class KademliaNode {
             oldNearestNodes.set(new ArrayList<>(nearestNodes));
 
             // Schedule periodic check
-            Timer timer = new Timer();
+            Timer timer = new Timer(true);
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
@@ -516,7 +610,7 @@ public class KademliaNode {
      *
      * @param   file        file to be stored
      */
-    public void storeData(KademliaFile file) {
+    public void storeFile(KademliaFile file) {
         getMemory().store(file, BUCKET_SIZE);
     }
 
@@ -526,9 +620,9 @@ public class KademliaNode {
      *
      * @param   files       files to be stored
      */
-    public void storeData(KademliaFile... files) {
+    public void storeFiles(KademliaFile... files) {
         for (KademliaFile file : files)
-            storeData(file);
+            storeFile(file);
     }
 
 
@@ -537,18 +631,26 @@ public class KademliaNode {
      *
      * @param   files       files to be stored
      */
-    public void storeData(Collection<KademliaFile> files) {
-        files.forEach(this::storeData);
+    public void storeFiles(Collection<KademliaFile> files) {
+        files.forEach(this::storeFile);
     }
 
 
     /**
-     * Delete data from this node
+     * Delete file from this node
      *
      * @param   key         key the data is associated to
      */
-    public void deleteData(NodeId key) {
+    public void deleteFile(NodeId key) {
         getMemory().delete(key);
+    }
+
+
+    /**
+     * Delete all the owned files by this node
+     */
+    public void deleteAllFiles() {
+        getMemory().deleteAll();
     }
 
 
@@ -573,8 +675,24 @@ public class KademliaNode {
                 @Override
                 public void onSuccess(Message response) {
                     if (response instanceof FindData) {
-                        files.addAll(((FindData) response).getFiles());
-                        listener.found(unmodifiableFilesList);
+                        for (KademliaFile file : ((FindData) response).getFiles()) {
+                            if ((file.getOwner().equals(getInfo())))
+                                continue;
+
+                            // Check if the node is online
+                            ping(file.getOwner(), new MessageListener() {
+                                @Override
+                                public void onSuccess(Message response) {
+                                    listener.found(unmodifiableFilesList);
+                                    files.add(file);
+                                }
+
+                                @Override
+                                public void onFailure() {
+
+                                }
+                            });
+                        }
                     }
                 }
 
@@ -588,12 +706,23 @@ public class KademliaNode {
 
 
     /**
+     * Download file
+     *
+     * @param   file            file to be downloaded
+     * @param   downloadPath    download path
+     */
+    public void downloadFile(KademliaFile file, File downloadPath) {
+        downloadExecutorService.submit(new Downloader(file, downloadPath));
+    }
+
+
+    /**
      * Log message
      *
      * @param   message     message to be logged
      */
-    private void log(String message) {
-        LogUtils.d("Node [" + getInfo().getId() + "]", message);
+    void log(String message) {
+        LogUtils.d("Node [" + getInfo().getId() + ", " + getInfo().getAddress() + ":" + getInfo().getPort() + "]", message);
     }
 
 }

@@ -2,15 +2,17 @@ package it.unishare.client.controllers;
 
 import com.sun.pdfview.PDFFile;
 import com.sun.pdfview.PDFPage;
-import it.unishare.client.connection.ConnectionManager;
-import it.unishare.client.database.DatabaseManager;
+import it.unishare.client.managers.ConnectionManager;
+import it.unishare.client.managers.DatabaseManager;
 import it.unishare.client.layout.GuiFile;
 import it.unishare.client.layout.MultipleIconButtonTableCell;
+import it.unishare.client.managers.FileManager;
 import it.unishare.client.utils.FileUtils;
-import it.unishare.client.utils.Settings;
+import it.unishare.client.utils.GUIUtils;
 import it.unishare.common.connection.kademlia.KademliaFile;
 import it.unishare.common.connection.kademlia.KademliaFileData;
 import it.unishare.common.connection.kademlia.KademliaNode;
+import it.unishare.common.models.User;
 import it.unishare.common.utils.HashingUtils;
 import it.unishare.common.utils.Triple;
 import javafx.beans.binding.Bindings;
@@ -185,8 +187,10 @@ public class MyFilesController extends AbstractController implements Initializab
         }
 
         // Copy and store file
+        User user = ConnectionManager.getInstance().getUser();
+
         KademliaNode node = ConnectionManager.getInstance().getNode();
-        KademliaFileData data = new KademliaFileData(title, university, department, course, teacher);
+        KademliaFileData data = new KademliaFileData(title, user.getFullName(), university, department, course, teacher);
 
         KademliaFile file = new KademliaFile(
                 HashingUtils.fileSHA1(filePath),
@@ -195,22 +199,22 @@ public class MyFilesController extends AbstractController implements Initializab
         );
 
         File source = new File(filePath);
-        File destination = new File(getFilePath(file));
+        File destination = new File(FileManager.getFilePath(user.getId(), file));
         FileUtils.copyFile(source, destination);
 
-        DatabaseManager.getInstance().addFile(file);
-        node.storeData(file);
+        DatabaseManager.getInstance().addFile(user, file);
+        node.storeFile(file);
 
         // Show success message
         showShareSuccessMessage(resources.getString("file_added"));
 
         // Reset fields
-        txtTitle.setText(null);
-        txtUniversity.setText(null);
-        txtDepartment.setText(null);
-        txtCourse.setText(null);
-        txtTeacher.setText(null);
-        txtFilePath.setText(null);
+        txtTitle.clear();
+        txtUniversity.clear();
+        txtDepartment.clear();
+        txtCourse.clear();
+        txtTeacher.clear();
+        txtFilePath.clear();
 
         // Reload data
         loadFiles();
@@ -222,12 +226,12 @@ public class MyFilesController extends AbstractController implements Initializab
      */
     @FXML
     private void reset() {
-        txtTitle.setText(null);
-        txtUniversity.setText(null);
-        txtDepartment.setText(null);
-        txtCourse.setText(null);
-        txtTeacher.setText(null);
-        txtFilePath.setText(null);
+        txtTitle.clear();
+        txtUniversity.clear();
+        txtDepartment.clear();
+        txtCourse.clear();
+        txtTeacher.clear();
+        txtFilePath.clear();
         lblMessage.setText(null);
     }
 
@@ -236,13 +240,15 @@ public class MyFilesController extends AbstractController implements Initializab
      * Populate the shared files table
      */
     private void loadFiles() {
-        List<KademliaFile> files = DatabaseManager.getInstance().getAllFiles();
+        User user = ConnectionManager.getInstance().getUser();
+        List<KademliaFile> files = DatabaseManager.getInstance().getUserFiles(user);
         ObservableList<GuiFile> guiFiles = FXCollections.observableArrayList();
 
         for (KademliaFile file : files)
             guiFiles.add(new GuiFile(file));
 
         tableFiles.setItems(guiFiles);
+        GUIUtils.autoResizeColumns(tableFiles);
     }
 
 
@@ -252,7 +258,8 @@ public class MyFilesController extends AbstractController implements Initializab
      * @param   file    file
      */
     private void preview(KademliaFile file) {
-        String filePath = getFilePath(file);
+        User user = ConnectionManager.getInstance().getUser();
+        String filePath = FileManager.getFilePath(user.getId(), file);
 
         // Load PDF
         Task<PDFFile> loadFileTask = new Task<PDFFile>() {
@@ -299,7 +306,8 @@ public class MyFilesController extends AbstractController implements Initializab
      * @param   file    file
      */
     private void open(KademliaFile file) {
-        String filePath = getFilePath(file);
+        User user = ConnectionManager.getInstance().getUser();
+        String filePath = FileManager.getFilePath(user.getId(), file);
 
         try {
             Desktop.getDesktop().open(new File(filePath));
@@ -316,7 +324,8 @@ public class MyFilesController extends AbstractController implements Initializab
      */
     private void delete(KademliaFile file) {
         // Delete the real file
-        String filePath = getFilePath(file);
+        User user = ConnectionManager.getInstance().getUser();
+        String filePath = FileManager.getFilePath(user.getId(), file);
 
         try {
             Files.delete(Paths.get(filePath));
@@ -325,26 +334,16 @@ public class MyFilesController extends AbstractController implements Initializab
         }
 
         // Remove from the database
-        DatabaseManager.getInstance().deleteFile(file.getKey().getBytes());
+        DatabaseManager.getInstance().deleteFile(user.getId(), file.getKey().getBytes());
 
         // Delete from the node memory
-        ConnectionManager.getInstance().getNode().deleteData(file.getKey());
+        ConnectionManager.getInstance().getNode().deleteFile(file.getKey());
 
         // Reload data
         loadFiles();
     }
 
 
-    /**
-     * Get file path
-     *
-     * @param   file    file
-     * @return  file path
-     */
-    private static String getFilePath(KademliaFile file) {
-        String fileName = file.getKey().toString() + ".pdf";
-        return Settings.getDataPath() + File.separator + fileName;
-    }
 
 
     /**

@@ -1,7 +1,7 @@
-package it.unishare.client.connection;
+package it.unishare.client.managers;
 
+import it.unishare.common.connection.kademlia.KademliaFile;
 import it.unishare.common.connection.kademlia.KademliaNode;
-import it.unishare.common.connection.kademlia.NND;
 import it.unishare.common.connection.server.RmiServerInterface;
 import it.unishare.common.exceptions.*;
 import it.unishare.common.models.User;
@@ -13,8 +13,10 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.Collection;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.prefs.Preferences;
 
 public class ConnectionManager {
 
@@ -36,6 +38,21 @@ public class ConnectionManager {
      */
     private ConnectionManager() {
         nodeBootstrap();
+
+        logged.addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                // Logged in
+                node.setFileProvider(new FileManager(user.getId()));
+
+                Collection<KademliaFile> files = DatabaseManager.getInstance().getUserFiles(user);
+                node.storeFiles(files);
+
+            } else {
+                // Logged out
+                node.setFileProvider(null);
+                node.deleteAllFiles();
+            }
+        });
     }
 
 
@@ -57,22 +74,12 @@ public class ConnectionManager {
      *
      * @return  server
      *
-     * @throws  RemoteException         in case of connection error
+     * @throws  RemoteException         in case of managers error
      * @throws  NotBoundException       in case of no bind
      * @throws  MalformedURLException   in case of malformed URL
      */
     private RmiServerInterface getServer() throws RemoteException, NotBoundException, MalformedURLException {
         return (RmiServerInterface)Naming.lookup(SERVER_ADDRESS);
-    }
-
-
-    /**
-     * Check whether the user is logged in or not
-     *
-     * @return  true if logged in; false otherwise
-     */
-    public boolean isLogged() {
-        return logged.get();
     }
 
 
@@ -97,12 +104,32 @@ public class ConnectionManager {
 
 
     /**
+     * Try automatic login if the user logged in during the previous session
+     */
+    public void tryAutomaticLogin() {
+        Preferences preferences = Preferences.userNodeForPackage(ConnectionManager.class);
+
+        String email = preferences.get("email", null);
+        String password = preferences.get("password", null);
+
+        if (email != null && password != null) {
+            try {
+                login(email, password);
+            } catch (RemoteException | MissingFieldException | NotFoundException | WrongPasswordException e) {
+                preferences.remove("email");
+                preferences.remove("password");
+            }
+        }
+    }
+
+
+    /**
      * Login
      *
      * @param   email       email
      * @param   password    clear password
      *
-     * @throws  RemoteException         in case of connection error
+     * @throws  RemoteException         in case of managers error
      * @throws  MissingFieldException   in case of missing field
      * @throws  NotFoundException       if the email is not associated with any user
      * @throws  WrongPasswordException  if the password is wrong
@@ -117,6 +144,11 @@ public class ConnectionManager {
         try {
             this.user = getServer().login(credentials);
             this.logged.set(true);
+
+            Preferences preferences = Preferences.userNodeForPackage(ConnectionManager.class);
+            preferences.put("email", email);
+            preferences.put("password", password);
+
             LogUtils.d(TAG, "Logged in");
 
         } catch (NotBoundException | MalformedURLException e) {
@@ -142,7 +174,7 @@ public class ConnectionManager {
      * @param   firstName   first name
      * @param   lastName    last name
      *
-     * @throws  RemoteException             in case of connection error
+     * @throws  RemoteException             in case of managers error
      * @throws  MissingFieldException       in case of missing field
      * @throws  InvalidDataException        in case of invalid data
      * @throws  EmailAlreadyInUseException  if the email is already used by another user
@@ -188,31 +220,13 @@ public class ConnectionManager {
         } catch (Exception e) {
             LogUtils.e(TAG, "Node bootstrap failed. Retrying in " + (PERIOD / 1000) + "s");
 
-            new Timer().schedule(new TimerTask() {
+            new Timer(true).schedule(new TimerTask() {
                 @Override
                 public void run() {
                     nodeBootstrap();
                 }
             }, PERIOD);
         }
-    }
-
-
-    /**
-     * Get Kademlia access point information
-     *
-     * @return  access point information
-     */
-    private NND getKademliaBootstrapNodeInfo() {
-        try {
-            return getServer().getKademliaInfo();
-
-        } catch (RemoteException | NotBoundException | MalformedURLException e) {
-            LogUtils.e(TAG, "Can't get Kademlia bootstrap node information");
-            e.printStackTrace();
-        }
-
-        return null;
     }
 
 }
