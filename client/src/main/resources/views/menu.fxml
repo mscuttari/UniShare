@@ -45,6 +45,11 @@
                                text="%search_notes"
                                selected="true" />
 
+                <SidebarButton fx:id="btnDownloads"
+                               icon="DOWNLOAD"
+                               onAction="#downloads"
+                               text="%downloads" />
+
                 <SidebarButton fx:id="btnMyFiles"
                                icon="FILE"
                                onAction="#myFiles"

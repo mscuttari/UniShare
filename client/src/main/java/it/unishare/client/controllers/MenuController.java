@@ -1,6 +1,6 @@
 package it.unishare.client.controllers;
 
-import it.unishare.client.connection.ConnectionManager;
+import it.unishare.client.managers.ConnectionManager;
 import it.unishare.client.layout.SidebarButton;
 import it.unishare.common.models.User;
 import javafx.beans.binding.Bindings;
@@ -18,6 +18,7 @@ public class MenuController extends AbstractController {
     @FXML private BorderPane rootPane;
 
     @FXML private SidebarButton btnSearch;
+    @FXML private SidebarButton btnDownloads;
     @FXML private SidebarButton btnMyFiles;
     @FXML private SidebarButton btnSettings;
 
@@ -40,6 +41,7 @@ public class MenuController extends AbstractController {
         ToggleGroup toggleGroup = new ToggleGroup();
 
         btnSearch.setToggleGroup(toggleGroup);
+        btnDownloads.setToggleGroup(toggleGroup);
         btnMyFiles.setToggleGroup(toggleGroup);
         btnSettings.setToggleGroup(toggleGroup);
 
@@ -60,6 +62,7 @@ public class MenuController extends AbstractController {
         setTooltip(btnLogout, resources, "logout");
 
         // Login status
+        btnDownloads.disableProperty().bind(Bindings.not(ConnectionManager.getInstance().loggedProperty()));
         btnMyFiles.disableProperty().bind(Bindings.not(ConnectionManager.getInstance().loggedProperty()));
         ConnectionManager.getInstance().loggedProperty().addListener((observable, oldValue, newValue) -> checkLoginStatus(newValue));
     }
@@ -71,6 +74,15 @@ public class MenuController extends AbstractController {
     @FXML
     private void searchNotes() {
         setView("search");
+    }
+
+
+    /**
+     * Show "Downloads" page
+     */
+    @FXML
+    private void downloads() {
+        setView("downloads");
     }
 
 
@@ -141,9 +153,12 @@ public class MenuController extends AbstractController {
             lblSignup.setVisible(true);
             boxLogin.setVisible(true);
 
-            // If the last shown page is the "My files" one, show the "Search files" page
+            // If the last shown page is a private one, show the "Search files" page
+            if (btnDownloads.isSelected() || btnMyFiles.isSelected()) {
+                searchNotes();
+            }
+
             btnSearch.setSelected(true);
-            searchNotes();
         }
     }
 

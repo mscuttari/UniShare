@@ -1,6 +1,5 @@
-package it.unishare.client.database;
+package it.unishare.client.managers;
 
-import it.unishare.client.connection.ConnectionManager;
 import it.unishare.client.utils.Settings;
 import it.unishare.common.connection.kademlia.KademliaFile;
 import it.unishare.common.connection.kademlia.KademliaFileData;
@@ -41,7 +40,7 @@ public class DatabaseManager {
 
 
     /**
-     * Get connection to the SQLite database
+     * Get managers to the SQLite database
      *
      * @return  database {@link Connection}
      */

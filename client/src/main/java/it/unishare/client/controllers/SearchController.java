@@ -1,6 +1,7 @@
 package it.unishare.client.controllers;
 
-import it.unishare.client.connection.ConnectionManager;
+import it.unishare.client.managers.ConnectionManager;
+import it.unishare.client.managers.DownloadManager;
 import it.unishare.client.layout.GuiFile;
 import it.unishare.client.layout.MultipleIconButtonTableCell;
 import it.unishare.client.utils.FileUtils;
@@ -8,6 +9,7 @@ import it.unishare.common.connection.kademlia.KademliaFile;
 import it.unishare.common.connection.kademlia.KademliaFileData;
 import it.unishare.common.connection.kademlia.KademliaNode;
 import it.unishare.common.exceptions.NodeNotConnectedException;
+import it.unishare.common.utils.Triple;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -15,17 +17,18 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
 import org.controlsfx.control.HiddenSidesPane;
 import org.controlsfx.control.textfield.TextFields;
 
+import java.io.File;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
 
 public class SearchController extends AbstractController implements Initializable {
 
-    @FXML
-    private HiddenSidesPane hiddenSidesPane;
+    @FXML private HiddenSidesPane hiddenSidesPane;
 
     // Share new files
     @FXML private TextField txtTitle;
@@ -72,7 +75,12 @@ public class SearchController extends AbstractController implements Initializabl
         columnCourse.setCellValueFactory(param -> param.getValue().courseProperty());
         columnTeacher.setCellValueFactory(param -> param.getValue().teacherProperty());
 
-        columnActions.setCellFactory(param -> new MultipleIconButtonTableCell<>());
+        columnActions.setCellFactory(param -> new MultipleIconButtonTableCell<>(
+                new Triple<>("DOWNLOAD", resources.getString("download"), param1 -> {
+                    download(param1.getFile());
+                    return null;
+                })
+        ));
     }
 
 
@@ -82,7 +90,7 @@ public class SearchController extends AbstractController implements Initializabl
     @FXML
     private void search() {
         String title = txtTitle.getText().trim();
-        String author = txtAuthor.getId().trim();
+        String author = txtAuthor.getText().trim();
         String university = txtUniversity.getText().trim();
         String department = txtDepartment.getText().trim();
         String course = txtCourse.getText().trim();
@@ -136,6 +144,36 @@ public class SearchController extends AbstractController implements Initializabl
         lblMessage.getStyleClass().remove("message-success");
         lblMessage.getStyleClass().add("message-failure");
         lblMessage.setText(message);
+    }
+
+
+    /**
+     * Download file
+     *
+     * @param   file    file to be downloaded
+     */
+    private void download(KademliaFile file) {
+        File downloadPath = chooseDownloadPath();
+
+        if (downloadPath != null) {
+            DownloadManager.getInstance().download(file, downloadPath);
+        }
+    }
+
+
+    /**
+     * Choose the download path
+     *
+     * @return  download path
+     */
+    private File chooseDownloadPath() {
+        FileChooser fileChooser = new FileChooser();
+
+        // PDF files only
+        FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter("PDF", "*.pdf");
+        fileChooser.getExtensionFilters().add(extensionFilter);
+
+        return fileChooser.showSaveDialog(hiddenSidesPane.getScene().getWindow());
     }
 
 }

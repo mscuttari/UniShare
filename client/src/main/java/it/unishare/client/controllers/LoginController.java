@@ -1,6 +1,6 @@
 package it.unishare.client.controllers;
 
-import it.unishare.client.connection.ConnectionManager;
+import it.unishare.client.managers.ConnectionManager;
 import it.unishare.common.exceptions.MissingFieldException;
 import it.unishare.common.exceptions.NotFoundException;
 import it.unishare.common.exceptions.WrongPasswordException;

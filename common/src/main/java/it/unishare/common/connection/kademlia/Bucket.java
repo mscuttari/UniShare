@@ -218,7 +218,7 @@ class Bucket extends ArrayList<NND> {
      * @param   message     message to be logged
      */
     private void log(String message) {
-        LogUtils.d("Node [" + parentNode.getInfo().getId() + "]", message);
+        parentNode.log(message);
     }
 
 }

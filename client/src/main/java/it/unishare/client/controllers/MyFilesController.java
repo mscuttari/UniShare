@@ -2,12 +2,12 @@ package it.unishare.client.controllers;
 
 import com.sun.pdfview.PDFFile;
 import com.sun.pdfview.PDFPage;
-import it.unishare.client.connection.ConnectionManager;
-import it.unishare.client.database.DatabaseManager;
+import it.unishare.client.managers.ConnectionManager;
+import it.unishare.client.managers.DatabaseManager;
 import it.unishare.client.layout.GuiFile;
 import it.unishare.client.layout.MultipleIconButtonTableCell;
+import it.unishare.client.managers.FileManager;
 import it.unishare.client.utils.FileUtils;
-import it.unishare.client.utils.Settings;
 import it.unishare.common.connection.kademlia.KademliaFile;
 import it.unishare.common.connection.kademlia.KademliaFileData;
 import it.unishare.common.connection.kademlia.KademliaNode;
@@ -198,7 +198,7 @@ public class MyFilesController extends AbstractController implements Initializab
         );
 
         File source = new File(filePath);
-        File destination = new File(getFilePath(file));
+        File destination = new File(FileManager.getFilePath(user.getId(), file));
         FileUtils.copyFile(source, destination);
 
         DatabaseManager.getInstance().addFile(user, file);
@@ -256,7 +256,8 @@ public class MyFilesController extends AbstractController implements Initializab
      * @param   file    file
      */
     private void preview(KademliaFile file) {
-        String filePath = getFilePath(file);
+        User user = ConnectionManager.getInstance().getUser();
+        String filePath = FileManager.getFilePath(user.getId(), file);
 
         // Load PDF
         Task<PDFFile> loadFileTask = new Task<PDFFile>() {
@@ -303,7 +304,8 @@ public class MyFilesController extends AbstractController implements Initializab
      * @param   file    file
      */
     private void open(KademliaFile file) {
-        String filePath = getFilePath(file);
+        User user = ConnectionManager.getInstance().getUser();
+        String filePath = FileManager.getFilePath(user.getId(), file);
 
         try {
             Desktop.getDesktop().open(new File(filePath));
@@ -320,7 +322,8 @@ public class MyFilesController extends AbstractController implements Initializab
      */
     private void delete(KademliaFile file) {
         // Delete the real file
-        String filePath = getFilePath(file);
+        User user = ConnectionManager.getInstance().getUser();
+        String filePath = FileManager.getFilePath(user.getId(), file);
 
         try {
             Files.delete(Paths.get(filePath));
@@ -329,7 +332,6 @@ public class MyFilesController extends AbstractController implements Initializab
         }
 
         // Remove from the database
-        User user = ConnectionManager.getInstance().getUser();
         DatabaseManager.getInstance().deleteFile(user.getId(), file.getKey().getBytes());
 
         // Delete from the node memory
@@ -340,17 +342,6 @@ public class MyFilesController extends AbstractController implements Initializab
     }
 
 
-    /**
-     * Get file path
-     *
-     * @param   file    file
-     * @return  file path
-     */
-    private static String getFilePath(KademliaFile file) {
-        String fileName = file.getKey().toString() + ".pdf";
-        User user = ConnectionManager.getInstance().getUser();
-        return Settings.getDataPath() + File.separator + user.getId() + "_" + fileName;
-    }
 
 
     /**

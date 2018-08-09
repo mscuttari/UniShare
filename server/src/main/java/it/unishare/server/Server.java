@@ -63,7 +63,7 @@ public class Server extends UnicastRemoteObject implements RmiServerInterface {
      * @param   address         server address
      * @param   port            server port
      *
-     * @throws  RemoteException in case of connection error
+     * @throws  RemoteException in case of managers error
      */
     public Server(String address, int port) throws RemoteException {
         this.address = address;

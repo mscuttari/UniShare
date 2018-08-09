@@ -1,6 +1,5 @@
-package it.unishare.client.connection;
+package it.unishare.client.managers;
 
-import it.unishare.client.database.DatabaseManager;
 import it.unishare.common.connection.kademlia.KademliaFile;
 import it.unishare.common.connection.kademlia.KademliaNode;
 import it.unishare.common.connection.server.RmiServerInterface;
@@ -43,11 +42,14 @@ public class ConnectionManager {
         logged.addListener((observable, oldValue, newValue) -> {
             if (newValue) {
                 // Logged in
+                node.setFileProvider(new FileManager(user.getId()));
+
                 Collection<KademliaFile> files = DatabaseManager.getInstance().getUserFiles(user);
                 node.storeFiles(files);
 
             } else {
                 // Logged out
+                node.setFileProvider(null);
                 node.deleteAllFiles();
             }
         });
@@ -72,7 +74,7 @@ public class ConnectionManager {
      *
      * @return  server
      *
-     * @throws  RemoteException         in case of connection error
+     * @throws  RemoteException         in case of managers error
      * @throws  NotBoundException       in case of no bind
      * @throws  MalformedURLException   in case of malformed URL
      */
@@ -127,7 +129,7 @@ public class ConnectionManager {
      * @param   email       email
      * @param   password    clear password
      *
-     * @throws  RemoteException         in case of connection error
+     * @throws  RemoteException         in case of managers error
      * @throws  MissingFieldException   in case of missing field
      * @throws  NotFoundException       if the email is not associated with any user
      * @throws  WrongPasswordException  if the password is wrong
@@ -172,7 +174,7 @@ public class ConnectionManager {
      * @param   firstName   first name
      * @param   lastName    last name
      *
-     * @throws  RemoteException             in case of connection error
+     * @throws  RemoteException             in case of managers error
      * @throws  MissingFieldException       in case of missing field
      * @throws  InvalidDataException        in case of invalid data
      * @throws  EmailAlreadyInUseException  if the email is already used by another user

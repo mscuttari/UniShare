@@ -14,7 +14,7 @@ public interface RmiServerInterface extends Remote {
      *
      * @param   user    user with non empty email and password
      *
-     * @throws  RemoteException         in case of connection error
+     * @throws  RemoteException         in case of managers error
      * @throws  MissingFieldException   if email or password are missing
      * @throws  NotFoundException       if no user has the specified email
      * @throws  WrongPasswordException  if the password is wrong
@@ -27,7 +27,7 @@ public interface RmiServerInterface extends Remote {
      *
      * @param   user    user with non empty email, clear password, first name and last name
      *
-     * @throws  RemoteException         in case of connection error
+     * @throws  RemoteException         in case of managers error
      * @throws  MissingFieldException   if email, password, first name or last name are missing
      * @throws  InvalidDataException    if email or password are invalid
      */
@@ -38,7 +38,7 @@ public interface RmiServerInterface extends Remote {
      * Get information representing the server in the Kademlia network
      *
      * @return  node information {see {@link NND}}
-     * @throws  RemoteException in case of connection error
+     * @throws  RemoteException in case of managers error
      */
     NND getKademliaInfo() throws RemoteException;
 

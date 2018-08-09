@@ -72,7 +72,7 @@ public class KademliaFileData implements Serializable {
 
     @Override
     public String toString() {
-        return "{" + title + ", " + university + ", " + department + ", " + course + ", " + teacher + "}";
+        return "{" + title + ", " + author + ", " + university + ", " + department + ", " + course + ", " + teacher + "}";
     }
 
 
@@ -112,7 +112,7 @@ public class KademliaFileData implements Serializable {
      * @param   author      author name
      */
     public void setAuthor(String author) {
-        this.author = author;
+        this.author = author == null || author.isEmpty() ? null : author;
     }
 
 

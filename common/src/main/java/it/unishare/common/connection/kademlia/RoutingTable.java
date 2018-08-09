@@ -4,7 +4,6 @@ import it.unishare.common.utils.LogUtils;
 
 import java.math.BigInteger;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 class RoutingTable {
 
@@ -134,7 +133,7 @@ class RoutingTable {
 
 
     /**
-     * Update node connection status
+     * Update node managers status
      *
      * The node can be considered as connected if it has at least one node in its routing table
      */
@@ -149,7 +148,7 @@ class RoutingTable {
      * @param   message     message to be logged
      */
     private void log(String message) {
-        LogUtils.d("Node [" + parentNode.getInfo().getId() + "]", message);
+        parentNode.log(message);
     }
 
 }

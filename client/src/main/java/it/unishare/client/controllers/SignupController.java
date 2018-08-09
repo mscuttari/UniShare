@@ -1,6 +1,6 @@
 package it.unishare.client.controllers;
 
-import it.unishare.client.connection.ConnectionManager;
+import it.unishare.client.managers.ConnectionManager;
 import it.unishare.common.exceptions.*;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;

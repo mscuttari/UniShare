@@ -29,7 +29,7 @@ public class NND implements Serializable {
      * Constructor
      *
      * @param   address     address
-     * @param   port        connection port
+     * @param   port        managers port
      */
     public NND(InetAddress address, int port) {
         this(new NodeId(), address, port);
@@ -41,7 +41,7 @@ public class NND implements Serializable {
      *
      * @param   id          ID
      * @param   address     address
-     * @param   port        connection port
+     * @param   port        managers port
      */
     public NND(NodeId id, InetAddress address, int port) {
         this.id = id;
@@ -112,9 +112,9 @@ public class NND implements Serializable {
 
 
     /**
-     * Get UDP connection port
+     * Get UDP managers port
      *
-     * @return  UDP connection port
+     * @return  UDP managers port
      */
     public int getPort() {
         return port;
@@ -122,9 +122,9 @@ public class NND implements Serializable {
 
 
     /**
-     * Set UDP connection port
+     * Set UDP managers port
      *
-     * @param   port    UDP connection port
+     * @param   port    UDP managers port
      */
     void setPort(int port) {
         this.port = port;
