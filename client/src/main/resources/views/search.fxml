@@ -29,8 +29,15 @@
 
                     <Label styleClass="title" text="%search_filters" />
 
-                    <TextField fx:id="txtTitle"
-                               promptText="%title" />
+                    <HBox spacing="10">
+                        <TextField fx:id="txtTitle"
+                                   HBox.hgrow="ALWAYS"
+                                   promptText="%title" />
+
+                        <TextField fx:id="txtAuthor"
+                                   HBox.hgrow="ALWAYS"
+                                   promptText="%author" />
+                    </HBox>
 
                     <HBox spacing="10">
                         <TextField fx:id="txtUniversity"
@@ -69,6 +76,7 @@
 
                         <columns>
                             <TableColumn fx:id="columnRating"       text="%rating" />
+                            <TableColumn fx:id="columnAuthor"       text="%author" />
                             <TableColumn fx:id="columnTitle"        text="%title"/>
                             <TableColumn fx:id="columnUniversity"   text="%university"/>
                             <TableColumn fx:id="columnDepartment"   text="%department"/>

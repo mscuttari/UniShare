@@ -29,6 +29,7 @@ public class SearchController extends AbstractController implements Initializabl
 
     // Share new files
     @FXML private TextField txtTitle;
+    @FXML private TextField txtAuthor;
     @FXML private TextField txtUniversity;
     @FXML private TextField txtDepartment;
     @FXML private TextField txtCourse;
@@ -41,6 +42,7 @@ public class SearchController extends AbstractController implements Initializabl
 
     @FXML private TableColumn<GuiFile, Float> columnRating;
     @FXML private TableColumn<GuiFile, String> columnTitle;
+    @FXML private TableColumn<GuiFile, String> columnAuthor;
     @FXML private TableColumn<GuiFile, String> columnUniversity;
     @FXML private TableColumn<GuiFile, String> columnDepartment;
     @FXML private TableColumn<GuiFile, String> columnCourse;
@@ -64,6 +66,7 @@ public class SearchController extends AbstractController implements Initializabl
         // Search results
         // TODO: rating column
         columnTitle.setCellValueFactory(param -> param.getValue().titleProperty());
+        columnAuthor.setCellValueFactory(param -> param.getValue().authorProperty());
         columnUniversity.setCellValueFactory(param -> param.getValue().universityProperty());
         columnDepartment.setCellValueFactory(param -> param.getValue().departmentProperty());
         columnCourse.setCellValueFactory(param -> param.getValue().courseProperty());
@@ -79,12 +82,13 @@ public class SearchController extends AbstractController implements Initializabl
     @FXML
     private void search() {
         String title = txtTitle.getText().trim();
+        String author = txtAuthor.getId().trim();
         String university = txtUniversity.getText().trim();
         String department = txtDepartment.getText().trim();
         String course = txtCourse.getText().trim();
         String teacher = txtTeacher.getText().trim();
 
-        KademliaFileData fileData = new KademliaFileData(title, university, department, course, teacher);
+        KademliaFileData fileData = new KademliaFileData(title, author, university, department, course, teacher);
         KademliaNode node = ConnectionManager.getInstance().getNode();
 
         try {

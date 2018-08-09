@@ -86,6 +86,9 @@ class Memory {
         if (filter.getTitle() != null && !filter.getTitle().equals(fileData.getTitle()))
             return false;
 
+        if (filter.getAuthor() != null && !filter.getAuthor().equals(fileData.getAuthor()))
+            return false;
+
         if (filter.getUniversity() != null && !filter.getUniversity().equals(fileData.getUniversity()))
             return false;
 

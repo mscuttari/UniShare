@@ -7,24 +7,27 @@ public class KademliaFileData implements Serializable {
     // Serialization
     private static final long serialVersionUID = 5975688018355674770L;
 
+    private String author;
+    private String title;
     private String university;
     private String department;
     private String course;
     private String teacher;
-    private String title;
 
 
     /**
      * Constructor
      *
      * @param   title           note title
+     * @param   author          author name
      * @param   university      university name
      * @param   department      department name
      * @param   course          course name
      * @param   teacher         teacher name
      */
-    public KademliaFileData(String title, String university, String department, String course, String teacher) {
+    public KademliaFileData(String title, String author, String university, String department, String course, String teacher) {
         setTitle(title);
+        setAuthor(author);
         setUniversity(university);
         setDepartment(department);
         setCourse(course);
@@ -41,6 +44,9 @@ public class KademliaFileData implements Serializable {
 
         if (getTitle() == null && data.getTitle() != null) return false;
         if (!getTitle().equals(data.getTitle())) return false;
+
+        if (getAuthor() == null && data.getAuthor() != null) return false;
+        if (!getAuthor().equals(data.getAuthor())) return false;
 
         if (getUniversity() == null && data.getUniversity() != null) return false;
         if (!getUniversity().equals(data.getUniversity())) return false;
@@ -87,6 +93,26 @@ public class KademliaFileData implements Serializable {
      */
     private void setTitle(String title) {
         this.title = title == null || title.isEmpty() ? null : title;
+    }
+
+
+    /**
+     * Get author name
+     *
+     * @return  author name
+     */
+    public String getAuthor() {
+        return author;
+    }
+
+
+    /**
+     * Set author name
+     *
+     * @param   author      author name
+     */
+    public void setAuthor(String author) {
+        this.author = author;
     }
 
 

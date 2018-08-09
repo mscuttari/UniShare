@@ -4,6 +4,7 @@ import it.unishare.client.connection.ConnectionManager;
 import it.unishare.client.utils.Settings;
 import it.unishare.common.connection.kademlia.KademliaFile;
 import it.unishare.common.connection.kademlia.KademliaFileData;
+import it.unishare.common.models.User;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -103,7 +104,7 @@ public class DatabaseManager {
     /**
      * Get all files
      */
-    public List<KademliaFile> getUserFiles(long userId) {
+    public List<KademliaFile> getUserFiles(User user) {
         List<KademliaFile> result = new ArrayList<>();
         String sql = "SELECT key, title, university, department, course, teacher FROM my_files WHERE user_id = ?";
 
@@ -111,12 +112,13 @@ public class DatabaseManager {
             Connection connection = getConnection();
 
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setLong(1, userId);
+            statement.setLong(1, user.getId());
 
             ResultSet resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
                 KademliaFileData data = new KademliaFileData(
+                        user.getFullName(),
                         resultSet.getString("title"),
                         resultSet.getString("university"),
                         resultSet.getString("department"),
@@ -148,14 +150,14 @@ public class DatabaseManager {
      *
      * @param   file    file
      */
-    public void addFile(long userId, KademliaFile file) {
+    public void addFile(User user, KademliaFile file) {
         String sql = "INSERT INTO my_files(user_id, key, title, university, department, course, teacher) VALUES(?, ?, ?, ?, ?, ?, ?)";
 
         try {
             Connection connection = getConnection();
 
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setLong(1, userId);
+            statement.setLong(1, user.getId());
             statement.setBytes(2, file.getKey().getBytes());
             statement.setString(3, file.getData().getTitle());
             statement.setString(4, file.getData().getUniversity());

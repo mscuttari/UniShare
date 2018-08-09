@@ -9,8 +9,6 @@ import it.unishare.common.models.User;
 import it.unishare.common.utils.LogUtils;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 
 import java.net.MalformedURLException;
 import java.rmi.Naming;
@@ -45,7 +43,7 @@ public class ConnectionManager {
         logged.addListener((observable, oldValue, newValue) -> {
             if (newValue) {
                 // Logged in
-                Collection<KademliaFile> files = DatabaseManager.getInstance().getUserFiles(user.getId());
+                Collection<KademliaFile> files = DatabaseManager.getInstance().getUserFiles(user);
                 node.storeFiles(files);
 
             } else {
@@ -80,16 +78,6 @@ public class ConnectionManager {
      */
     private RmiServerInterface getServer() throws RemoteException, NotBoundException, MalformedURLException {
         return (RmiServerInterface)Naming.lookup(SERVER_ADDRESS);
-    }
-
-
-    /**
-     * Check whether the user is logged in or not
-     *
-     * @return  true if logged in; false otherwise
-     */
-    public boolean isLogged() {
-        return logged.get();
     }
 
 

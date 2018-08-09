@@ -186,8 +186,10 @@ public class MyFilesController extends AbstractController implements Initializab
         }
 
         // Copy and store file
+        User user = ConnectionManager.getInstance().getUser();
+
         KademliaNode node = ConnectionManager.getInstance().getNode();
-        KademliaFileData data = new KademliaFileData(title, university, department, course, teacher);
+        KademliaFileData data = new KademliaFileData(title, user.getFullName(), university, department, course, teacher);
 
         KademliaFile file = new KademliaFile(
                 HashingUtils.fileSHA1(filePath),
@@ -199,8 +201,7 @@ public class MyFilesController extends AbstractController implements Initializab
         File destination = new File(getFilePath(file));
         FileUtils.copyFile(source, destination);
 
-        User user = ConnectionManager.getInstance().getUser();
-        DatabaseManager.getInstance().addFile(user.getId(), file);
+        DatabaseManager.getInstance().addFile(user, file);
         node.storeFile(file);
 
         // Show success message
@@ -239,7 +240,7 @@ public class MyFilesController extends AbstractController implements Initializab
      */
     private void loadFiles() {
         User user = ConnectionManager.getInstance().getUser();
-        List<KademliaFile> files = DatabaseManager.getInstance().getUserFiles(user.getId());
+        List<KademliaFile> files = DatabaseManager.getInstance().getUserFiles(user);
         ObservableList<GuiFile> guiFiles = FXCollections.observableArrayList();
 
         for (KademliaFile file : files)
