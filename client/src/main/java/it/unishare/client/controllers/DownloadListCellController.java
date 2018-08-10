@@ -6,6 +6,7 @@ import it.unishare.client.managers.DownloadManager;
 import it.unishare.common.connection.kademlia.KademliaFile;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.HBox;
 
 import java.awt.*;
@@ -16,7 +17,7 @@ import java.util.ResourceBundle;
 public class DownloadListCellController extends AbstractController {
 
     @FXML private HBox actions;
-    @FXML private HBox progress;
+    @FXML private ProgressBar progressBar;
 
     @FXML private Label lblTitle;
     @FXML private Label lblDescription;
@@ -30,7 +31,7 @@ public class DownloadListCellController extends AbstractController {
         this.resources = resources;
 
         actions.managedProperty().bind(actions.visibleProperty());
-        progress.managedProperty().bind(progress.visibleProperty());
+        progressBar.managedProperty().bind(progressBar.visibleProperty());
     }
 
 
@@ -96,15 +97,6 @@ public class DownloadListCellController extends AbstractController {
 
 
     /**
-     * Stop the download
-     */
-    @FXML
-    private void stop() {
-        DownloadManager.getInstance().stopDownload(download);
-    }
-
-
-    /**
      * Update view according to download status
      *
      * @param   downloadStatus      download status
@@ -112,10 +104,10 @@ public class DownloadListCellController extends AbstractController {
     private void updateView(DownloadStatus downloadStatus) {
         if (downloadStatus == DownloadStatus.IN_PROGRESS) {
             actions.setVisible(false);
-            progress.setVisible(true);
+            progressBar.setVisible(true);
 
         } else {
-            progress.setVisible(false);
+            progressBar.setVisible(false);
             actions.setVisible(true);
         }
     }

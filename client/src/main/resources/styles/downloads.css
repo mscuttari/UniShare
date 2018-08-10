@@ -5,7 +5,7 @@
 
 
 .list-view .list-cell {
-    -fx-background-color: #fafafa;
+    -fx-background-color: whitesmoke;
     -fx-border-color: #f1f1f1;
     -fx-padding: 10
 }

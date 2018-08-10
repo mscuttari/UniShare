@@ -72,7 +72,7 @@ class Uploader implements Runnable {
         try (InputStream in = new FileInputStream(myFile)) {
 
             try {
-                Thread.sleep(3000);
+                Thread.sleep(10000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

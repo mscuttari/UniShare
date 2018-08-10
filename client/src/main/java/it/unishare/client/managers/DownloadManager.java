@@ -79,23 +79,6 @@ public class DownloadManager {
 
 
     /**
-     * Stop download process
-     *
-     * @param   download    download to be stopped
-     */
-    public void stopDownload(Download download) {
-        LogUtils.d(TAG, "Stopping download of file " + download.getFile().getKey());
-        Future<?> process = download.getProcess();
-
-        if (!process.isDone() && !process.isCancelled())
-            process.cancel(true);
-
-        downloads.remove(download);
-        LogUtils.d(TAG, "Download stopped for file " + download.getFile().getKey());
-    }
-
-
-    /**
      * Download tracker
      */
     private static class DownloadTracker implements Runnable {

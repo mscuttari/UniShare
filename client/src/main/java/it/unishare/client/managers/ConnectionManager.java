@@ -44,7 +44,7 @@ public class ConnectionManager {
                 // Logged in
                 node.setFileProvider(new FileManager(user.getId()));
 
-                Collection<KademliaFile> files = DatabaseManager.getInstance().getUserFiles(user);
+                Collection<KademliaFile> files = DatabaseManager.getInstance().getSharedFiles(user);
                 node.storeFiles(files);
 
             } else {

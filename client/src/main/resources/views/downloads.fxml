@@ -25,6 +25,9 @@
         <Label styleClass="title"
                text="%downloads" />
 
+        <Label fx:id="lblEmptyList"
+               text="%no_downloads" />
+
         <ListView fx:id="listDownloads"
                   maxHeight="1.7976931348623157E308"
                   VBox.vgrow="ALWAYS"

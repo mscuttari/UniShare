@@ -100,7 +100,7 @@ public class Download {
     public void setStatus(DownloadStatus status) {
         DownloadStatus oldValue = this.status;
         this.status = status;
-        listeners.forEach(listener -> listener.onStatusChange(oldValue, status));
+        listeners.forEach(listener -> listener.onStatusChange(status, oldValue));
     }
 
 

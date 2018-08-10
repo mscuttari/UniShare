@@ -202,7 +202,7 @@ public class ShareController extends AbstractController implements Initializable
         File destination = new File(FileManager.getFilePath(user.getId(), file));
         FileUtils.copyFile(source, destination);
 
-        DatabaseManager.getInstance().addFile(user, file);
+        DatabaseManager.getInstance().addSharedFiles(user, file);
         node.storeFile(file);
 
         // Show success message
@@ -241,7 +241,7 @@ public class ShareController extends AbstractController implements Initializable
      */
     private void loadFiles() {
         User user = ConnectionManager.getInstance().getUser();
-        List<KademliaFile> files = DatabaseManager.getInstance().getUserFiles(user);
+        List<KademliaFile> files = DatabaseManager.getInstance().getSharedFiles(user);
         ObservableList<GuiFile> guiFiles = FXCollections.observableArrayList();
 
         for (KademliaFile file : files)
@@ -334,7 +334,7 @@ public class ShareController extends AbstractController implements Initializable
         }
 
         // Remove from the database
-        DatabaseManager.getInstance().deleteFile(user.getId(), file.getKey().getBytes());
+        DatabaseManager.getInstance().deleteSharedFile(user.getId(), file.getKey().getBytes());
 
         // Delete from the node memory
         ConnectionManager.getInstance().getNode().deleteFile(file.getKey());
