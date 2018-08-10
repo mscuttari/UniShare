@@ -3,6 +3,7 @@ package it.unishare.client.managers;
 import it.unishare.client.layout.Download;
 import it.unishare.common.connection.kademlia.KademliaFile;
 import it.unishare.common.connection.kademlia.KademliaNode;
+import it.unishare.common.models.User;
 import it.unishare.common.utils.LogUtils;
 import javafx.collections.*;
 
@@ -26,9 +27,11 @@ public class DownloadManager {
      * Constructor
      */
     private DownloadManager() {
-        downloads = FXCollections.observableList(new ArrayList<>());
+        User user = ConnectionManager.getInstance().getUser();
+        List<Download> downloadedFiles = DatabaseManager.getInstance().getDownloadedFiles(user);
+        this.downloads = FXCollections.observableList(downloadedFiles);
 
-        executorService = Executors.newCachedThreadPool(r -> {
+        this.executorService = Executors.newCachedThreadPool(r -> {
             Thread thread = new Thread(r);
             thread.setDaemon(true);
             return thread;
@@ -71,10 +74,30 @@ public class DownloadManager {
         KademliaNode node = ConnectionManager.getInstance().getNode();
         Future<?> downloadProcess = node.downloadFile(file, downloadPath);
         Download download = new Download(file, downloadPath, downloadProcess);
+
+        User user = ConnectionManager.getInstance().getUser();
+        DatabaseManager.getInstance().addDownloadedFile(user, download);
+
         executorService.submit(new DownloadTracker(download, downloadProcess));
         downloads.add(download);
 
         LogUtils.d(TAG, "Download started for file " + file.getKey());
+    }
+
+
+    /**
+     * Delete download
+     *
+     * @param   download    download
+     */
+    public void delete(Download download) {
+        LogUtils.d(TAG, "Deleting file " + download.getFile().getKey() + " from downloaded files list");
+
+        User user = ConnectionManager.getInstance().getUser();
+        DatabaseManager.getInstance().deleteDownloadedFile(user, download);
+        downloads.remove(download);
+
+        LogUtils.d(TAG, "File " + download.getFile().getKey() + " deleted from the downloaded files list");
     }
 
 

@@ -1,5 +1,6 @@
 package it.unishare.client.managers;
 
+import it.unishare.client.layout.Download;
 import it.unishare.client.utils.Settings;
 import it.unishare.common.connection.kademlia.KademliaFile;
 import it.unishare.common.connection.kademlia.KademliaFileData;
@@ -78,34 +79,39 @@ public class DatabaseManager {
      * Initialize database
      */
     private void initializeDatabase() {
-        String sql = "CREATE TABLE IF NOT EXISTS shared_files(" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "user_id INTEGER NOT NULL," +
-                "key BLOB NOT NULL," +
-                "title TEXT NOT NULL," +
-                "university TEXT NOT NULL," +
-                "department TEXT NOT NULL," +
-                "course TEXT NOT NULL," +
-                "teacher TEXT NOT NULL" +
-                ");";
+        String[] SQLs = new String[] {
+                "CREATE TABLE IF NOT EXISTS shared_files(" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                        "user_id INTEGER NOT NULL," +
+                        "key BLOB NOT NULL," +
+                        "title TEXT NOT NULL," +
+                        "university TEXT NOT NULL," +
+                        "department TEXT NOT NULL," +
+                        "course TEXT NOT NULL," +
+                        "teacher TEXT NOT NULL" +
+                        ");",
 
-        sql += "CREATE TABLE IF NOT EXISTS downloaded_files(" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "user_id INTEGER NOT NULL," +
-                "key BLOB NOT NULL," +
-                "title TEXT NOT NULL," +
-                "university TEXT NOT NULL," +
-                "department TEXT NOT NULL," +
-                "course TEXT NOT NULL," +
-                "teacher TEXT NOT NULL, " +
-                "author TEXT NOT NULL, " +
-                "path TEXT NOT NULL" +
-                ");";
+                "CREATE TABLE IF NOT EXISTS downloaded_files(" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                        "user_id INTEGER NOT NULL," +
+                        "key BLOB NOT NULL," +
+                        "title TEXT NOT NULL," +
+                        "university TEXT NOT NULL," +
+                        "department TEXT NOT NULL," +
+                        "course TEXT NOT NULL," +
+                        "teacher TEXT NOT NULL, " +
+                        "author TEXT NOT NULL, " +
+                        "path TEXT NOT NULL" +
+                        ");"
+        };
 
         try {
             Connection connection = getConnection();
             Statement statement = connection.createStatement();
-            statement.execute(sql);
+
+            for (String SQL : SQLs)
+                statement.execute(SQL);
+
             connection.close();
 
         } catch (SQLException e) {
@@ -212,12 +218,12 @@ public class DatabaseManager {
 
 
     /**
-     * Get all downloaded files
+     * Get all the downloads
      *
-     * @return  list containing pairs of downloaded file and file path
+     * @return  list of the completed downloads
      */
-    public List<Pair<KademliaFile, File>> getDownloadedFiles(User user) {
-        List<Pair<KademliaFile, File>> result = new ArrayList<>();
+    public List<Download> getDownloadedFiles(User user) {
+        List<Download> result = new ArrayList<>();
         String sql = "SELECT key, title, university, department, course, teacher, author, path FROM downloaded_files WHERE user_id = ?";
 
         try {
@@ -245,7 +251,7 @@ public class DatabaseManager {
                 );
 
                 File path = new File(resultSet.getString("path"));
-                result.add(new Pair<>(file, path));
+                result.add(new Download(file, path));
             }
 
             connection.close();
@@ -259,12 +265,15 @@ public class DatabaseManager {
 
 
     /**
-     * Add downloaded file
+     * Add download
      *
-     * @param   file    file
+     * @param   user        user
+     * @param   download    download
      */
-    public void addDownloadedFiles(User user, KademliaFile file, File path) {
+    public void addDownloadedFile(User user, Download download) {
         String sql = "INSERT INTO downloaded_files(user_id, key, title, university, department, course, teacher, author, path) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        KademliaFile file = download.getFile();
+        File path = download.getPath();
 
         try {
             Connection connection = getConnection();
@@ -289,19 +298,29 @@ public class DatabaseManager {
 
 
     /**
-     * Delete downloaded file
+     * Delete download
      *
-     * @param   key     key
+     * @param   user        user
+     * @param   download    download
      */
-    public void deleteDownloadedFile(long userId, byte[] key) {
-        String sql = "DELETE FROM downloaded_files WHERE user_id = ? AND key = ?";
+    public void deleteDownloadedFile(User user, Download download) {
+        String sql = "DELETE FROM downloaded_files WHERE user_id = ? AND key = ? AND title = ? AND university = ? AND department = ? AND course = ? AND teacher = ? AND author = ? AND path = ?";
+        KademliaFile file = download.getFile();
+        File path = download.getPath();
 
         try {
             Connection connection = getConnection();
 
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setLong(1, userId);
-            statement.setBytes(2, key);
+            statement.setLong(1, user.getId());
+            statement.setBytes(2, file.getKey().getBytes());
+            statement.setString(3, file.getData().getTitle());
+            statement.setString(4, file.getData().getUniversity());
+            statement.setString(5, file.getData().getDepartment());
+            statement.setString(6, file.getData().getCourse());
+            statement.setString(7, file.getData().getTeacher());
+            statement.setString(8, file.getData().getAuthor());
+            statement.setString(9, path.getAbsolutePath());
 
             statement.executeUpdate();
             connection.close();
