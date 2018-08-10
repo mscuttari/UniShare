@@ -109,10 +109,10 @@ public class ConnectionManager {
     public void tryAutomaticLogin() {
         Preferences preferences = Preferences.userNodeForPackage(ConnectionManager.class);
 
-        String email = preferences.get("email", null);
-        String password = preferences.get("password", null);
+        String email = preferences.get("email", "");
+        String password = preferences.get("password", "");
 
-        if (email != null && password != null) {
+        if (!email.isEmpty() && !password.isEmpty()) {
             try {
                 login(email, password);
             } catch (RemoteException | MissingFieldException | NotFoundException | WrongPasswordException e) {
@@ -163,6 +163,10 @@ public class ConnectionManager {
     public void logout() {
         this.user = null;
         this.logged.set(false);
+
+        Preferences preferences = Preferences.userNodeForPackage(ConnectionManager.class);
+        preferences.put("email", "");
+        preferences.put("password", "");
     }
 
 
