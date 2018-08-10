@@ -117,8 +117,8 @@ public class DatabaseManager {
 
             while (resultSet.next()) {
                 KademliaFileData data = new KademliaFileData(
-                        user.getFullName(),
                         resultSet.getString("title"),
+                        user.getFullName(),
                         resultSet.getString("university"),
                         resultSet.getString("department"),
                         resultSet.getString("course"),

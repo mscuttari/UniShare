@@ -12,8 +12,8 @@ class Downloader implements Runnable {
     // Debug
     private static final String TAG = "Downloader";
 
-    private KademliaFile file;
-    private File destination;
+    private final KademliaFile file;
+    private final File destination;
 
 
     /**
@@ -30,32 +30,37 @@ class Downloader implements Runnable {
 
     @Override
     public void run() {
-        try {
-            InetAddress address = file.getOwner().getAddress();
-            int port = file.getOwner().getPort();
+        synchronized (file) {
+            try {
+                InetAddress address = file.getOwner().getAddress();
+                int port = file.getOwner().getPort();
 
-            LogUtils.d(TAG, "Connecting to " + address.toString() + ":" + port);
-            Socket socket = new Socket(address, port);
+                LogUtils.d(TAG, "Connecting to " + address.toString() + ":" + port);
+                Socket socket = new Socket(address, port);
 
-            InputStream in = socket.getInputStream();
-            OutputStream fileOut = new FileOutputStream(destination);
+                InputStream in = socket.getInputStream();
+                OutputStream fileOut = new FileOutputStream(destination);
 
-            LogUtils.d(TAG, "Sending request for file " + file.getKey());
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            out.writeObject(file);
+                LogUtils.d(TAG, "Sending request for file " + file.getKey());
+                ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                out.writeObject(file);
 
-            LogUtils.d(TAG, "Downloading the file " + file.getKey());
-            IOUtils.copy(in, fileOut);
+                LogUtils.d(TAG, "Downloading the file " + file.getKey());
+                IOUtils.copy(in, fileOut);
 
-            in.close();
-            out.close();
-            fileOut.close();
-            socket.close();
+                in.close();
+                out.close();
+                fileOut.close();
+                socket.close();
 
-            LogUtils.d(TAG, "Download completed for the file " + file.getKey());
+                LogUtils.d(TAG, "Download completed for the file " + file.getKey());
 
-        } catch (IOException e) {
-            e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+
+            } finally {
+                notifyAll();
+            }
         }
     }
 

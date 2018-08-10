@@ -1,7 +1,5 @@
 package it.unishare.client.utils;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;

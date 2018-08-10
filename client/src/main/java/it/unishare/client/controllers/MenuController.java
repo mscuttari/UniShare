@@ -19,7 +19,7 @@ public class MenuController extends AbstractController {
 
     @FXML private SidebarButton btnSearch;
     @FXML private SidebarButton btnDownloads;
-    @FXML private SidebarButton btnMyFiles;
+    @FXML private SidebarButton btnShare;
     @FXML private SidebarButton btnSettings;
 
     @FXML private HBox boxLogin;
@@ -42,7 +42,7 @@ public class MenuController extends AbstractController {
 
         btnSearch.setToggleGroup(toggleGroup);
         btnDownloads.setToggleGroup(toggleGroup);
-        btnMyFiles.setToggleGroup(toggleGroup);
+        btnShare.setToggleGroup(toggleGroup);
         btnSettings.setToggleGroup(toggleGroup);
 
         // Prevent the menu from not having a toggle selected
@@ -63,7 +63,7 @@ public class MenuController extends AbstractController {
 
         // Login status
         btnDownloads.disableProperty().bind(Bindings.not(ConnectionManager.getInstance().loggedProperty()));
-        btnMyFiles.disableProperty().bind(Bindings.not(ConnectionManager.getInstance().loggedProperty()));
+        btnShare.disableProperty().bind(Bindings.not(ConnectionManager.getInstance().loggedProperty()));
         ConnectionManager.getInstance().loggedProperty().addListener((observable, oldValue, newValue) -> checkLoginStatus(newValue));
     }
 
@@ -90,8 +90,8 @@ public class MenuController extends AbstractController {
      * Show "My files" page
      */
     @FXML
-    private void myFiles() {
-        setView("my_files");
+    private void share() {
+        setView("share");
     }
 
 
@@ -154,7 +154,7 @@ public class MenuController extends AbstractController {
             boxLogin.setVisible(true);
 
             // If the last shown page is a private one, show the "Search files" page
-            if (btnDownloads.isSelected() || btnMyFiles.isSelected()) {
+            if (btnDownloads.isSelected() || btnShare.isSelected()) {
                 searchNotes();
             }
 

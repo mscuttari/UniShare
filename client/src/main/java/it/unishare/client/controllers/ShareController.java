@@ -52,7 +52,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MyFilesController extends AbstractController implements Initializable {
+public class ShareController extends AbstractController implements Initializable {
 
     @FXML private HiddenSidesPane hiddenSidesPane;
 

@@ -7,8 +7,8 @@ public class KademliaFileData implements Serializable {
     // Serialization
     private static final long serialVersionUID = 5975688018355674770L;
 
-    private String author;
     private String title;
+    private String author;
     private String university;
     private String department;
     private String course;
