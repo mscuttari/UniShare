@@ -7,8 +7,8 @@ public class GuiFile {
 
     private KademliaFile file;
 
-    private StringProperty author;
     private StringProperty title;
+    private StringProperty author;
     private StringProperty university;
     private StringProperty department;
     private StringProperty course;
@@ -21,8 +21,8 @@ public class GuiFile {
     public GuiFile(KademliaFile file) {
         this.file = file;
 
-        this.author = new SimpleStringProperty(file.getData().getAuthor());
         this.title = new SimpleStringProperty(file.getData().getTitle());
+        this.author = new SimpleStringProperty(file.getData().getAuthor());
         this.university = new SimpleStringProperty(file.getData().getUniversity());
         this.department = new SimpleStringProperty(file.getData().getDepartment());
         this.course = new SimpleStringProperty(file.getData().getCourse());
@@ -41,22 +41,22 @@ public class GuiFile {
 
 
     /**
-     * Get author property
-     *
-     * @return  author property
-     */
-    public StringProperty authorProperty() {
-        return author;
-    }
-
-
-    /**
      * Get title property
      *
      * @return  title property
      */
     public StringProperty titleProperty() {
         return title;
+    }
+
+
+    /**
+     * Get author property
+     *
+     * @return  author property
+     */
+    public StringProperty authorProperty() {
+        return author;
     }
 
 

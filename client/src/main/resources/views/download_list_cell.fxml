@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import it.unishare.client.layout.IconButton?>
+<?import java.net.URL?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="it.unishare.client.controllers.DownloadListCellController"
+      alignment="CENTER_LEFT"
+      spacing="10">
+
+    <stylesheets>
+        <URL value="@../styles/default.css" />
+        <URL value="@../styles/downloads.css" />
+    </stylesheets>
+
+    <HBox spacing="10">
+
+        <VBox maxWidth="1.7976931348623157E308"
+              HBox.hgrow="ALWAYS">
+
+            <Label fx:id="lblTitle"
+                   styleClass="download-title" />
+
+            <Label fx:id="lblDescription" />
+        </VBox>
+
+        <HBox fx:id="actions"
+              alignment="CENTER_RIGHT"
+              spacing="5">
+
+            <IconButton icon="FILE"
+                        description="%open"
+                        onAction="#open" />
+
+            <IconButton icon="FOLDER_OPEN"
+                        description="%open_folder"
+                        onAction="#openFolder" />
+
+            <IconButton icon="TRASH"
+                        description="%remove_from_list"
+                        onAction="#remove" />
+        </HBox>
+    </HBox>
+
+    <ProgressBar fx:id="progressBar"
+                 maxWidth="1.7976931348623157E308"
+                 HBox.hgrow="ALWAYS" />
+
+</VBox>

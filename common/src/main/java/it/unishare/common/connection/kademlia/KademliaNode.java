@@ -18,6 +18,7 @@ public class KademliaNode {
 
     // Connection
     private DatagramSocket messagesServerSocket;
+    private ServerSocket fileServerSocket;
 
     private ExecutorService executorService, downloadExecutorService, uploadExecutorService;
     private Semaphore serverSemaphore = new Semaphore(0);
@@ -51,7 +52,7 @@ public class KademliaNode {
     public KademliaNode(FileProvider fileProvider) {
         this.fileProvider = fileProvider;
 
-        this.executorService = Executors.newFixedThreadPool(2, r -> {
+        this.executorService = Executors.newCachedThreadPool(r -> {
             Thread thread = new Thread(r);
             thread.setDaemon(true);
             return thread;
@@ -240,7 +241,15 @@ public class KademliaNode {
         messagesServerSocket = null;
 
         // Close the file server socket
+        if (fileServerSocket != null && !fileServerSocket.isClosed()) {
+            try {
+                fileServerSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
+        fileServerSocket = null;
 
         info = null;
     }
@@ -253,7 +262,7 @@ public class KademliaNode {
         // Response server
         executorService.submit(() -> {
             DatagramPacket packet = new DatagramPacket(new byte[16416], 16416);
-            log("Server started");
+            log("Response server started");
             serverSemaphore.release();
 
             // noinspection InfiniteLoopStatement
@@ -287,7 +296,9 @@ public class KademliaNode {
         // File server
         executorService.submit(() -> {
             try {
-                ServerSocket fileServerSocket = new ServerSocket(getMessagesServerSocket().getLocalPort());
+                fileServerSocket = new ServerSocket(getMessagesServerSocket().getLocalPort());
+                log("File server started");
+                serverSemaphore.release();
 
                 // noinspection InfiniteLoopStatement
                 while (true) {
@@ -355,7 +366,7 @@ public class KademliaNode {
         startServer();
 
         try {
-            serverSemaphore.acquire();
+            serverSemaphore.acquire(2);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -710,9 +721,12 @@ public class KademliaNode {
      *
      * @param   file            file to be downloaded
      * @param   downloadPath    download path
+     *
+     * @return  {@link Future} representing the download process
      */
-    public void downloadFile(KademliaFile file, File downloadPath) {
-        downloadExecutorService.submit(new Downloader(file, downloadPath));
+    public Future<?> downloadFile(KademliaFile file, File downloadPath) {
+        Runnable downloader = new Downloader(file, downloadPath);
+        return downloadExecutorService.submit(downloader);
     }
 
 

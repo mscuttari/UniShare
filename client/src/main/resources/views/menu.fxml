@@ -50,10 +50,10 @@
                                onAction="#downloads"
                                text="%downloads" />
 
-                <SidebarButton fx:id="btnMyFiles"
-                               icon="FILE"
-                               onAction="#myFiles"
-                               text="%my_files" />
+                <SidebarButton fx:id="btnShare"
+                               icon="SHARE_ALT"
+                               onAction="#share"
+                               text="%share_files" />
 
                 <SidebarButton fx:id="btnSettings"
                                icon="COG"

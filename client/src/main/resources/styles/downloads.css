@@ -1,0 +1,27 @@
+.list-view, .split-pane {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+
+.list-view .list-cell {
+    -fx-background-color: whitesmoke;
+    -fx-border-color: #f1f1f1;
+    -fx-padding: 10
+}
+
+
+.download-title {
+    -fx-font-size: 14;
+    -fx-font-weight: bold;
+}
+
+.button-close {
+    -fx-background-color: transparent !important;
+    -fx-border-color: transparent !important;
+}
+
+.button-close:hover {
+    -fx-background-color: transparent !important;
+    -fx-border-color: transparent !important;
+}

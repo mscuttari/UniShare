@@ -2,7 +2,6 @@ package it.unishare.common.connection.kademlia;
 
 import it.unishare.common.connection.kademlia.rpc.Message;
 import it.unishare.common.connection.kademlia.rpc.Store;
-import it.unishare.common.utils.LogUtils;
 
 import java.util.*;
 
@@ -225,11 +224,9 @@ class Memory {
      * Delete all the owned files
      */
     public void deleteAll() {
-        Collection<NodeId> ownedFiles = republishTimers.keySet();
-
-        for (NodeId file : ownedFiles) {
-            delete(file);
-        }
+        Collection<NodeId> ownedFiles = new ArrayList<>(republishTimers.keySet());
+        Iterator<NodeId> iterator = ownedFiles.iterator();
+        ownedFiles.forEach(this::delete);
     }
 
 

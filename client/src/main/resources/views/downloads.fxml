@@ -1,17 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import it.unishare.client.layout.IconButton?>
-<?import org.controlsfx.control.HiddenSidesPane?>
 <?import java.net.URL?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="it.unishare.client.controllers.DownloadsController">
+            fx:controller="it.unishare.client.controllers.DownloadsController"
+            styleClass="root">
 
     <stylesheets>
         <URL value="@../styles/default.css" />
+        <URL value="@../styles/downloads.css" />
     </stylesheets>
+
+
+    <VBox styleClass="box-section"
+          AnchorPane.topAnchor="0.0"
+          AnchorPane.bottomAnchor="0.0"
+          AnchorPane.leftAnchor="0.0"
+          AnchorPane.rightAnchor="0.0"
+          spacing="10">
+
+        <Label styleClass="title"
+               text="%downloads" />
+
+        <Label fx:id="lblEmptyList"
+               text="%no_downloads" />
+
+        <ListView fx:id="listDownloads"
+                  maxHeight="1.7976931348623157E308"
+                  VBox.vgrow="ALWAYS"
+                  HBox.hgrow="ALWAYS" />
+
+    </VBox>
 
 </AnchorPane>
