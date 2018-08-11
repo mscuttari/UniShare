@@ -14,28 +14,70 @@
         <URL value="@../styles/settings.css" />
     </stylesheets>
 
-    <VBox styleClass="box-section"
-          spacing="10"
+    <AnchorPane styleClass="box-section"
           AnchorPane.topAnchor="0.0"
           AnchorPane.bottomAnchor="0.0"
           AnchorPane.leftAnchor="0.0"
           AnchorPane.rightAnchor="0.0">
 
-        <!-- Data path -->
-        <VBox spacing="5">
-            <Label text="%data_path" />
+        <VBox AnchorPane.topAnchor="0.0"
+              AnchorPane.bottomAnchor="0.0"
+              AnchorPane.leftAnchor="0.0"
+              AnchorPane.rightAnchor="0.0"
+              spacing="20">
 
-            <HBox spacing="10">
-                <TextField fx:id="txtDataPath"
-                           maxWidth="1.7976931348623157E308"
-                           HBox.hgrow="ALWAYS"
-                           editable="false" />
+            <!-- Local configuration -->
+            <VBox spacing="5">
+                <Label styleClass="title" text="%local_configuration" />
 
-                <Button fx:id="btnDirectorySelection"
-                        text="%browse" />
-            </HBox>
+                <!-- Data path -->
+                <VBox spacing="5">
+                    <Label text="%data_path" />
+
+                    <HBox spacing="10">
+                        <TextField fx:id="txtDataPath"
+                                   maxWidth="1.7976931348623157E308"
+                                   HBox.hgrow="ALWAYS"
+                                   editable="false" />
+
+                        <Button onAction="#selectDataDirectory" text="%browse" />
+                    </HBox>
+                </VBox>
+            </VBox>
+
+            <!-- Connection -->
+            <VBox spacing="5">
+                <Label styleClass="title" text="%connection" />
+
+                <HBox spacing="10">
+                    <!-- Server address -->
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="%server_address" />
+                        <TextField fx:id="txtServerAddress" />
+                    </VBox>
+
+                    <!-- Server port -->
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="%server_port" />
+                        <TextField fx:id="txtServerPort" />
+                    </VBox>
+                </HBox>
+            </VBox>
+
         </VBox>
 
-    </VBox>
+        <HBox alignment="CENTER_RIGHT"
+              AnchorPane.bottomAnchor="0.0"
+              AnchorPane.leftAnchor="0.0"
+              AnchorPane.rightAnchor="0.0">
+
+            <!-- Save button -->
+            <Button styleClass="button-left" text="%save" onAction="#save" />
+
+            <!-- Reset button -->
+            <Button styleClass="button-right" text="%reset" onAction="#reset" />
+        </HBox>
+
+    </AnchorPane>
 
 </AnchorPane>
