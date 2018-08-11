@@ -1,4 +1,4 @@
-package it.unishare.common.connection.kademlia;
+package it.unishare.common.kademlia;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -50,7 +50,7 @@ class RoutingTable {
      */
     public List<NND> getAllNodes() {
         List<NND> result = new ArrayList<>();
-        buckets.forEach(result::addAll);
+        buckets.forEach(bucket -> result.addAll(bucket.getAll()));
 
         result.sort((o1, o2) -> {
             BigInteger firstDistance  = o1.getId().distance(parentNode.getInfo().getId());

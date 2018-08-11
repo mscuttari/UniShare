@@ -1,8 +1,8 @@
 package it.unishare.client.managers;
 
+import it.unishare.common.connection.dht.NoteFile;
+import it.unishare.common.connection.dht.UniShareNode;
 import it.unishare.client.layout.Download;
-import it.unishare.common.connection.kademlia.KademliaFile;
-import it.unishare.common.connection.kademlia.KademliaNode;
 import it.unishare.common.models.User;
 import it.unishare.common.utils.LogUtils;
 import javafx.collections.*;
@@ -68,10 +68,10 @@ public class DownloadManager {
      * @param   file            file to be downloaded
      * @param   downloadPath    download path
      */
-    public void download(KademliaFile file, File downloadPath) {
+    public void download(NoteFile file, File downloadPath) {
         LogUtils.d(TAG, "Starting download of file " + file.getKey());
 
-        KademliaNode node = ConnectionManager.getInstance().getNode();
+        UniShareNode node = ConnectionManager.getInstance().getNode();
         Future<?> downloadProcess = node.downloadFile(file, downloadPath);
         Download download = new Download(file, downloadPath, downloadProcess);
 

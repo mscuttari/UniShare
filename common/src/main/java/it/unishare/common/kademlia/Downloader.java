@@ -1,4 +1,4 @@
-package it.unishare.common.connection.kademlia;
+package it.unishare.common.kademlia;
 
 import it.unishare.common.utils.LogUtils;
 import org.apache.commons.io.IOUtils;

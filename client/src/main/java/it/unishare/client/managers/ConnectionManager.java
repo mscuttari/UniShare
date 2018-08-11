@@ -1,8 +1,8 @@
 package it.unishare.client.managers;
 
+import it.unishare.common.connection.dht.NoteFile;
+import it.unishare.common.connection.dht.UniShareNode;
 import it.unishare.client.utils.Settings;
-import it.unishare.common.connection.kademlia.KademliaFile;
-import it.unishare.common.connection.kademlia.KademliaNode;
 import it.unishare.common.connection.server.RmiServerInterface;
 import it.unishare.common.exceptions.*;
 import it.unishare.common.models.User;
@@ -28,7 +28,7 @@ public class ConnectionManager {
     private static ConnectionManager instance;
 
     // Connection
-    private KademliaNode node = new KademliaNode();
+    private UniShareNode node = new UniShareNode();
     private User user;
     private BooleanProperty logged = new SimpleBooleanProperty(false);
 
@@ -44,7 +44,7 @@ public class ConnectionManager {
                 // Logged in
                 node.setFileProvider(new FilesManager(user.getId()));
 
-                Collection<KademliaFile> files = DatabaseManager.getInstance().getSharedFiles(user);
+                Collection<NoteFile> files = DatabaseManager.getInstance().getSharedFiles(user);
                 node.storeFiles(files);
 
             } else {
@@ -209,7 +209,7 @@ public class ConnectionManager {
      *
      * @return  node
      */
-    public KademliaNode getNode() {
+    public UniShareNode getNode() {
         return node;
     }
 

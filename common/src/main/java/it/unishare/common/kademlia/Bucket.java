@@ -1,18 +1,14 @@
-package it.unishare.common.connection.kademlia;
-
-import it.unishare.common.utils.RandomGaussian;
+package it.unishare.common.kademlia;
 
 import java.math.BigInteger;
 import java.util.*;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
 
-class Bucket extends ArrayList<NND> {
+class Bucket {
 
-    private int size;
+    private final int size;
     private KademliaNode parentNode;
+    private ArrayList<NND> bucket;
     private Queue<NND> queue = new LinkedList<>();
-    private RandomGaussian randomGaussian = new RandomGaussian();
 
 
     /**
@@ -22,40 +18,65 @@ class Bucket extends ArrayList<NND> {
      * @param   node    parent node
      */
     public Bucket(int k, KademliaNode node) {
-        super(k);
-
         this.size = k;
         this.parentNode = node;
+        this.bucket = new ArrayList<>(k);
     }
 
 
-    @Override
-    public synchronized NND set(int index, NND element) {
-        throw new UnsupportedOperationException();
+    /**
+     * Check if the bucket contains a specific node
+     *
+     * @param   nnd     network node data of the searched node
+     * @return  true if the node is in the bucket; false otherwise
+     */
+    public boolean contains(NND nnd) {
+        return bucket.contains(nnd);
     }
 
 
-    @Override
-    public synchronized void add(int index, NND element) {
-        throw new UnsupportedOperationException();
+    /**
+     * Get the number of nodes in the bucket
+     *
+     * @return  number of nodes
+     */
+    public int size() {
+        return bucket.size();
     }
 
 
-    @Override
+    /**
+     * Get all the nodes in the bucket
+     *
+     * @return  unmodifiable collection containing all the nodes in the bucket
+     */
+    public Collection<NND> getAll() {
+        return Collections.unmodifiableCollection(bucket);
+    }
+
+
+    /**
+     * Add node to the bucket
+     *
+     *
+     *
+     * @param   nnd     node network data
+     * @return  true if the node has been added successfully; false otherwise
+     */
     public synchronized boolean add(NND nnd) {
         nnd.setLastSeen(Calendar.getInstance());
 
         // Check if the node ID is already in the bucket
         // In this case, just update its info
-        int index = indexOf(nnd);
+        int index = bucket.indexOf(nnd);
         if (index >= 0) {
-            NND nodeInfo = get(index);
+            NND nodeInfo = bucket.get(index);
 
             nodeInfo.setAddress(nnd.getAddress());
             nodeInfo.setPort(nnd.getPort());
             nodeInfo.setLastSeen(nnd.getLastSeen());
 
-            sort(lastSeenComparator());
+            bucket.sort(lastSeenComparator());
             return true;
         }
 
@@ -64,19 +85,19 @@ class Bucket extends ArrayList<NND> {
             queue.add(nnd);
 
         // Add the node if there is enough free space in the bucket
-        if (super.size() < size) {
+        if (bucket.size() < size) {
             NND node = queue.poll();
-            final boolean result = super.add(node);
-            sort(lastSeenComparator());
+            final boolean result = bucket.add(node);
+            bucket.sort(lastSeenComparator());
             return result;
         }
 
         // If the bucket is full, ping the least recently seen node in order to see if it's still alive
-        NND firstNode = get(0);
+        NND firstNode = bucket.get(0);
         PingMessage ping = new PingMessage(parentNode.getInfo(), firstNode);
         log("Pinging " + firstNode.getId());
 
-        parentNode.getDispatcher().sendMessage(ping, new MessageListener() {
+        parentNode.sendMessage(ping, new MessageListener() {
             @Override
             public void onSuccess(Message response) {
                 log("Ping response received from " + response.getSource().getId());
@@ -87,8 +108,8 @@ class Bucket extends ArrayList<NND> {
             public void onFailure() {
                 log("Can't ping " + ping.getDestination().getId());
                 remove(firstNode);
-                Bucket.super.add(queue.poll());
-                sort(lastSeenComparator());
+                bucket.add(queue.poll());
+                bucket.sort(lastSeenComparator());
             }
         });
 
@@ -96,56 +117,30 @@ class Bucket extends ArrayList<NND> {
     }
 
 
-    @Override
-    public synchronized boolean addAll(Collection<? extends NND> c) {
+    /**
+     * Add the nodes to the bucket
+     *
+     * @param   nnds    {@link Collection} of the network node data to be added
+     * @return  true if at least one of the node has been added successfully; false otherwise
+     */
+    public synchronized boolean addAll(Collection<NND> nnds) {
         boolean result = false;
 
-        for (NND nnd : c)
+        for (NND nnd : nnds)
             result |= add(nnd);
 
         return result;
     }
 
 
-    @Override
-    public synchronized boolean addAll(int index, Collection<? extends NND> c) {
-        return addAll(c);
-    }
-
-
-    @Override
-    public synchronized void replaceAll(UnaryOperator<NND> operator) {
-        throw new UnsupportedOperationException();
-    }
-
-
-    @Override
-    public synchronized NND remove(int index) {
-        throw new UnsupportedOperationException();
-    }
-
-
-    @Override
-    public synchronized boolean remove(Object o) {
-        return super.remove(o);
-    }
-
-
-    @Override
-    protected synchronized void removeRange(int fromIndex, int toIndex) {
-        throw new UnsupportedOperationException();
-    }
-
-
-    @Override
-    public synchronized boolean removeAll(Collection<?> c) {
-        throw new UnsupportedOperationException();
-    }
-
-
-    @Override
-    public synchronized boolean removeIf(Predicate<? super NND> filter) {
-        throw new UnsupportedOperationException();
+    /**
+     * Remove node from the bucket
+     *
+     * @param   nnd     network node data of the node to be removed
+     * @return  true if the node has been removed successfully; false otherwise
+     */
+    public synchronized boolean remove(NND nnd) {
+        return bucket.remove(nnd);
     }
 
 
@@ -160,32 +155,6 @@ class Bucket extends ArrayList<NND> {
 
 
     /**
-     * Schedule ping for a node
-     *
-     * @param   node    node to be pinged
-     */
-    private void schedulePing(NND node) {
-        /*final int PING_PERIOD = Math.max((int) (randomGaussian.getGaussian(15, 1) * 1000), 5000);
-
-        Timer timer = scheduledTimers.get(node);
-
-        if (timer != null)
-            timer.cancel();
-
-        timer = new Timer();
-
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                //parentNode.ping(node);
-            }
-        }, PING_PERIOD);
-
-        scheduledTimers.put(node, timer);*/
-    }
-
-
-    /**
      * Get nearest nodes to a node ID
      *
      * @param   nodeId      node ID to search neighbours for
@@ -194,7 +163,7 @@ class Bucket extends ArrayList<NND> {
      * @return  nearest nodes
      */
     public List<NND> getNearestNodes(NodeId nodeId, int amount) {
-        List<NND> allNodes = new ArrayList<>(this);
+        List<NND> allNodes = new ArrayList<>(bucket);
 
         allNodes.sort((o1, o2) -> {
             BigInteger firstDistance  = o1.getId().distance(nodeId);

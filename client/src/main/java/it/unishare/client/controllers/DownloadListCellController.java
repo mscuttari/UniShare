@@ -1,9 +1,9 @@
 package it.unishare.client.controllers;
 
+import it.unishare.common.connection.dht.NoteFile;
 import it.unishare.client.layout.Download;
 import it.unishare.client.layout.Download.DownloadStatus;
 import it.unishare.client.managers.DownloadManager;
-import it.unishare.common.connection.kademlia.KademliaFile;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
@@ -42,7 +42,7 @@ public class DownloadListCellController extends AbstractController {
     public void setDownload(Download download) {
         this.download = download;
 
-        KademliaFile file = download.getFile();
+        NoteFile file = download.getFile();
         lblTitle.setText(file.getData().getTitle());
         lblDescription.setText("[" +
                 file.getData().getUniversity() + ", " +

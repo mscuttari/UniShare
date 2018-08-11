@@ -1,7 +1,6 @@
-package it.unishare.common.connection.kademlia;
+package it.unishare.common.kademlia;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.net.InetAddress;
 import java.util.Calendar;
 
@@ -148,17 +147,6 @@ public class NND implements Serializable {
      */
     void setLastSeen(Calendar lastSeen) {
         this.lastSeen = lastSeen;
-    }
-
-
-    /**
-     * Get the distance between this and another node
-     *
-     * @param   node        node
-     * @return  distance between this node and the given node
-     */
-    public BigInteger distance(NND node) {
-        return id.distance(node.id);
     }
 
 }

@@ -1,6 +1,6 @@
 package it.unishare.client.layout;
 
-import it.unishare.common.connection.kademlia.KademliaFile;
+import it.unishare.common.connection.dht.NoteFile;
 
 import java.io.File;
 import java.util.Collection;
@@ -18,7 +18,7 @@ public class Download {
         FAILED
     }
 
-    private KademliaFile file;
+    private NoteFile file;
     private File path;
     private DownloadStatus status;
     private Future<?> process;
@@ -30,7 +30,7 @@ public class Download {
      *
      * @param   file    downloaded file
      */
-    public Download(KademliaFile file, File path) {
+    public Download(NoteFile file, File path) {
         this(file, path, DownloadStatus.FINISHED, null);
     }
 
@@ -41,7 +41,7 @@ public class Download {
      * @param   file                file
      * @param   downloadProcess     download process
      */
-    public Download(KademliaFile file, File path, Future<?> downloadProcess) {
+    public Download(NoteFile file, File path, Future<?> downloadProcess) {
         this(file, path, DownloadStatus.IN_PROGRESS, downloadProcess);
     }
 
@@ -54,7 +54,7 @@ public class Download {
      * @param   initialStatus       initial status
      * @param   downloadProcess     download process
      */
-    public Download(KademliaFile file, File path, DownloadStatus initialStatus, Future<?> downloadProcess) {
+    public Download(NoteFile file, File path, DownloadStatus initialStatus, Future<?> downloadProcess) {
         this.file = file;
         this.path = path;
         this.status = initialStatus;
@@ -67,7 +67,7 @@ public class Download {
      *
      * @return  downloaded file
      */
-    public KademliaFile getFile() {
+    public NoteFile getFile() {
         return file;
     }
 

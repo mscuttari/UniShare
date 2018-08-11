@@ -1,11 +1,11 @@
-package it.unishare.common.connection.kademlia;
+package it.unishare.common.kademlia;
 
 import java.util.EventListener;
 
 /**
  * Message response listener interface
  */
-interface MessageListener extends EventListener {
+public interface MessageListener extends EventListener {
 
     /**
      * Called on message response

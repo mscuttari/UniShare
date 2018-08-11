@@ -1,9 +1,10 @@
 package it.unishare.client.managers;
 
+import it.unishare.common.connection.dht.NoteFile;
+import it.unishare.common.connection.dht.NoteMetadata;
 import it.unishare.client.layout.Download;
 import it.unishare.client.utils.Settings;
-import it.unishare.common.connection.kademlia.KademliaFile;
-import it.unishare.common.connection.kademlia.KademliaFileData;
+import it.unishare.common.kademlia.KademliaFile;
 import it.unishare.common.models.Review;
 import it.unishare.common.models.User;
 
@@ -136,8 +137,8 @@ public class DatabaseManager {
      *
      * @return  shared files list
      */
-    public List<KademliaFile> getSharedFiles(User user) {
-        List<KademliaFile> result = new ArrayList<>();
+    public List<NoteFile> getSharedFiles(User user) {
+        List<NoteFile> result = new ArrayList<>();
         String sql = "SELECT key, title, university, department, course, teacher FROM shared_files WHERE user_id = ?";
 
         try {
@@ -149,7 +150,7 @@ public class DatabaseManager {
             ResultSet resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
-                KademliaFileData data = new KademliaFileData(
+                NoteMetadata data = new NoteMetadata(
                         resultSet.getString("title"),
                         user.getFullName(),
                         resultSet.getString("university"),
@@ -158,7 +159,7 @@ public class DatabaseManager {
                         resultSet.getString("teacher")
                 );
 
-                KademliaFile file = new KademliaFile(
+                NoteFile file = new NoteFile(
                         resultSet.getBytes("key"),
                         ConnectionManager.getInstance().getNode().getInfo(),
                         data
@@ -182,7 +183,7 @@ public class DatabaseManager {
      *
      * @param   file    file
      */
-    public void addSharedFiles(User user, KademliaFile file) {
+    public void addSharedFiles(User user, NoteFile file) {
         String sql = "INSERT INTO shared_files(user_id, key, title, university, department, course, teacher) VALUES(?, ?, ?, ?, ?, ?, ?)";
 
         try {
@@ -246,7 +247,7 @@ public class DatabaseManager {
             ResultSet resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
-                KademliaFileData data = new KademliaFileData(
+                NoteMetadata data = new NoteMetadata(
                         resultSet.getString("title"),
                         resultSet.getString("author"),
                         resultSet.getString("university"),
@@ -255,7 +256,7 @@ public class DatabaseManager {
                         resultSet.getString("teacher")
                 );
 
-                KademliaFile file = new KademliaFile(
+                NoteFile file = new NoteFile(
                         resultSet.getBytes("key"),
                         ConnectionManager.getInstance().getNode().getInfo(),
                         data
@@ -293,7 +294,7 @@ public class DatabaseManager {
             ResultSet resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
-                KademliaFileData data = new KademliaFileData(
+                NoteMetadata data = new NoteMetadata(
                         resultSet.getString("title"),
                         resultSet.getString("author"),
                         resultSet.getString("university"),
@@ -302,7 +303,7 @@ public class DatabaseManager {
                         resultSet.getString("teacher")
                 );
 
-                KademliaFile file = new KademliaFile(
+                NoteFile file = new NoteFile(
                         resultSet.getBytes("key"),
                         ConnectionManager.getInstance().getNode().getInfo(),
                         data
@@ -330,7 +331,7 @@ public class DatabaseManager {
      */
     public void addDownloadedFile(User user, Download download) {
         String sql = "INSERT INTO downloaded_files(user_id, key, title, university, department, course, teacher, author, path) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        KademliaFile file = download.getFile();
+        NoteFile file = download.getFile();
         File path = download.getPath();
 
         try {
@@ -364,7 +365,7 @@ public class DatabaseManager {
      */
     public void deleteDownloadedFile(User user, Download download) {
         String sql = "DELETE FROM downloaded_files WHERE user_id = ? AND key = ? AND title = ? AND university = ? AND department = ? AND course = ? AND teacher = ? AND author = ? AND path = ?";
-        KademliaFile file = download.getFile();
+        NoteFile file = download.getFile();
         File path = download.getPath();
 
         try {
@@ -398,7 +399,7 @@ public class DatabaseManager {
      */
     public void hideDownloadedFile(User user, Download download) {
         String sql = "UPDATE downloaded_files SET show = 0 WHERE user_id = ? AND key = ? AND title = ? AND university = ? AND department = ? AND course = ? AND teacher = ? AND author = ? AND path = ?";
-        KademliaFile file = download.getFile();
+        NoteFile file = download.getFile();
         File path = download.getPath();
 
         try {

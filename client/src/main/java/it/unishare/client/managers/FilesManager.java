@@ -1,8 +1,8 @@
 package it.unishare.client.managers;
 
 import it.unishare.client.utils.Settings;
-import it.unishare.common.connection.kademlia.FilesProvider;
-import it.unishare.common.connection.kademlia.KademliaFile;
+import it.unishare.common.kademlia.FilesProvider;
+import it.unishare.common.kademlia.KademliaFile;
 import it.unishare.common.models.Review;
 import it.unishare.common.models.User;
 

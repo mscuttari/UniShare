@@ -1,7 +1,7 @@
 package it.unishare.server;
 
-import it.unishare.common.connection.kademlia.KademliaNode;
-import it.unishare.common.connection.kademlia.NND;
+import it.unishare.common.kademlia.KademliaNode;
+import it.unishare.common.kademlia.NND;
 import it.unishare.common.connection.server.RmiServerInterface;
 import it.unishare.common.exceptions.*;
 import it.unishare.common.utils.LogUtils;
@@ -72,7 +72,14 @@ public class Server extends UnicastRemoteObject implements RmiServerInterface {
         this.entityManagerFactory = Persistence.createEntityManagerFactory(persistenceUnit);
 
         try {
-            this.node = new KademliaNode();
+            this.node = new KademliaNode() {
+
+                @Override
+                protected void onMessageReceived(it.unishare.common.kademlia.Message message) {
+
+                }
+
+            };
             node.bootstrap(node.getInfo());
         } catch (Exception e) {
             LogUtils.e(TAG, "Can't initialize DHT network");

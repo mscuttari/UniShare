@@ -1,8 +1,8 @@
-package it.unishare.common.connection.kademlia;
+package it.unishare.common.connection.dht;
 
-import java.io.Serializable;
+import it.unishare.common.kademlia.KademliaFileData;
 
-public class KademliaFileData implements Serializable {
+public final class NoteMetadata implements KademliaFileData {
 
     // Serialization
     private static final long serialVersionUID = 5975688018355674770L;
@@ -25,7 +25,7 @@ public class KademliaFileData implements Serializable {
      * @param   course          course name
      * @param   teacher         teacher name
      */
-    public KademliaFileData(String title, String author, String university, String department, String course, String teacher) {
+    public NoteMetadata(String title, String author, String university, String department, String course, String teacher) {
         setTitle(title);
         setAuthor(author);
         setUniversity(university);
@@ -37,28 +37,28 @@ public class KademliaFileData implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof KademliaFileData))
+        if (!(obj instanceof NoteMetadata))
             return false;
 
-        KademliaFileData data = (KademliaFileData) obj;
+        NoteMetadata data = (NoteMetadata) obj;
 
-        if (getTitle() == null && data.getTitle() != null) return false;
-        if (!getTitle().equals(data.getTitle())) return false;
+        if (title == null && data.title != null) return false;
+        if (title != null && !title.equals(data.title)) return false;
 
-        if (getAuthor() == null && data.getAuthor() != null) return false;
-        if (!getAuthor().equals(data.getAuthor())) return false;
+        if (author == null && data.author != null) return false;
+        if (author != null && !author.equals(data.author)) return false;
 
-        if (getUniversity() == null && data.getUniversity() != null) return false;
-        if (!getUniversity().equals(data.getUniversity())) return false;
+        if (university == null && data.university != null) return false;
+        if (university != null && !university.equals(data.university)) return false;
 
-        if (getDepartment() == null && data.getDepartment() != null) return false;
-        if (!getDepartment().equals(data.getDepartment())) return false;
+        if (department == null && data.department != null) return false;
+        if (department != null && !department.equals(data.department)) return false;
 
-        if (getCourse() == null && data.getCourse() != null) return false;
-        if (!getCourse().equals(data.getCourse())) return false;
+        if (course == null && data.course != null) return false;
+        if (course != null && !course.equals(data.course)) return false;
 
-        if (getTeacher() == null && data.getTeacher() != null) return false;
-        if (!getTeacher().equals(data.getTeacher())) return false;
+        if (teacher == null && data.teacher != null) return false;
+        if (teacher != null && !teacher.equals(data.teacher)) return false;
 
         return true;
     }
