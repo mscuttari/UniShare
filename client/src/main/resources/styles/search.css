@@ -1,3 +1,4 @@
+/* Search messages */
 .message {
     -fx-alignment: CENTER_LEFT;
     -fx-padding: 0 0 0 5;
@@ -10,4 +11,43 @@
 
 .message-failure {
     -fx-text-fill: #e60000;
+}
+
+/* Reviews */
+
+.button-transparent {
+    -fx-font-size: 15;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.button-transparent:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.reviews-page {
+    -fx-background-color: white;
+    -fx-padding: 10;
+    -fx-border-color: grey;
+    -fx-border-width: 0 0 0 2;
+}
+
+/* ListView */
+.lv-reviews {
+    -fx-min-width: 450;
+}
+
+/* Rating */
+
+.rating > .container .button {
+    -fx-pref-width: 20px;
+    -fx-pref-height: 20px;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.rating > .container .button:hover {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
 }

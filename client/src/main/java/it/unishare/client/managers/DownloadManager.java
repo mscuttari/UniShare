@@ -28,7 +28,7 @@ public class DownloadManager {
      */
     private DownloadManager() {
         User user = ConnectionManager.getInstance().getUser();
-        List<Download> downloadedFiles = DatabaseManager.getInstance().getDownloadedFiles(user);
+        List<Download> downloadedFiles = DatabaseManager.getInstance().getDownloadedAndShowableFiles(user);
         this.downloads = FXCollections.observableList(downloadedFiles);
 
         this.executorService = Executors.newCachedThreadPool(r -> {
@@ -94,7 +94,7 @@ public class DownloadManager {
         LogUtils.d(TAG, "Deleting file " + download.getFile().getKey() + " from downloaded files list");
 
         User user = ConnectionManager.getInstance().getUser();
-        DatabaseManager.getInstance().deleteDownloadedFile(user, download);
+        DatabaseManager.getInstance().hideDownloadedFile(user, download);
         downloads.remove(download);
 
         LogUtils.d(TAG, "File " + download.getFile().getKey() + " deleted from the downloaded files list");

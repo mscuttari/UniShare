@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import org.controlsfx.control.Rating?>
+<?import java.net.URL?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="it.unishare.client.controllers.ReviewListCellController"
+      alignment="CENTER_LEFT"
+      spacing="5">
+
+    <stylesheets>
+        <URL value="@../styles/default.css" />
+        <URL value="@../styles/search.css" />
+    </stylesheets>
+
+    <HBox>
+        <Rating fx:id="rating" />
+        <Label fx:id="lblAuthor" />
+    </HBox>
+
+    <Label fx:id="lblBody" />
+
+</VBox>
