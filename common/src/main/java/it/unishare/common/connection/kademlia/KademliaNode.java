@@ -76,13 +76,18 @@ public class KademliaNode {
      * @return  IP address
      */
     private static InetAddress getServerIP() throws IOException {
-        return InetAddress.getByName("127.0.0.1");
+        try (final DatagramSocket socket = new DatagramSocket()){
+            socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
+            return socket.getLocalAddress();
+        }
 
         /*
-        URL whatIsMyIP = new URL("http://checkip.amazonaws.com");
-        BufferedReader in = new BufferedReader(new InputStreamReader(whatIsMyIP.openStream()));
-        String ip = in.readLine();
-        return InetAddress.getByName(ip);
+            Uncomment if you want to run the network on a real web scenario and not in a LAN
+
+            URL whatIsMyIP = new URL("http://checkip.amazonaws.com");
+            BufferedReader in = new BufferedReader(new InputStreamReader(whatIsMyIP.openStream()));
+            String ip = in.readLine();
+            return InetAddress.getByName(ip);
         */
     }
 
