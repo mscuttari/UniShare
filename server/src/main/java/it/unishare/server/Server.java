@@ -32,7 +32,7 @@ public class Server extends UnicastRemoteObject implements RmiServerInterface {
 
     public static void main(String[] args) {
         try {
-            new Server("rmi://127.0.0.1/unishare", 1099).start();
+            new Server("127.0.0.1", 1099).start();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -88,7 +88,7 @@ public class Server extends UnicastRemoteObject implements RmiServerInterface {
             LogUtils.d(TAG, "Starting");
 
             LocateRegistry.createRegistry(port);
-            Naming.rebind(address, this);
+            Naming.rebind("rmi://" + address + ":" + port + "/unishare", this);
 
             LogUtils.d(TAG, "Ready");
 
