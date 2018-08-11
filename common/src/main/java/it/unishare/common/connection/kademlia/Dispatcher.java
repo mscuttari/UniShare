@@ -1,7 +1,5 @@
 package it.unishare.common.connection.kademlia;
 
-import it.unishare.common.connection.kademlia.rpc.Message;
-
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;

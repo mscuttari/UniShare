@@ -10,7 +10,7 @@ import it.unishare.common.connection.kademlia.KademliaFile;
 import it.unishare.common.connection.kademlia.KademliaFileData;
 import it.unishare.common.connection.kademlia.KademliaNode;
 import it.unishare.common.exceptions.NodeNotConnectedException;
-import it.unishare.common.utils.Triple;
+import it.unishare.common.utils.Quaternary;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -44,7 +44,6 @@ public class SearchController extends AbstractController implements Initializabl
     // Shared files
     @FXML private TableView<GuiFile> tableFiles;
 
-    @FXML private TableColumn<GuiFile, Float> columnRating;
     @FXML private TableColumn<GuiFile, String> columnTitle;
     @FXML private TableColumn<GuiFile, String> columnAuthor;
     @FXML private TableColumn<GuiFile, String> columnUniversity;
@@ -67,7 +66,6 @@ public class SearchController extends AbstractController implements Initializabl
         TextFields.bindAutoCompletion(txtUniversity, universities);
 
         // Search results
-        // TODO: rating column
         columnTitle.setCellValueFactory(param -> param.getValue().titleProperty());
         columnAuthor.setCellValueFactory(param -> param.getValue().authorProperty());
         columnUniversity.setCellValueFactory(param -> param.getValue().universityProperty());
@@ -76,10 +74,14 @@ public class SearchController extends AbstractController implements Initializabl
         columnTeacher.setCellValueFactory(param -> param.getValue().teacherProperty());
 
         columnActions.setCellFactory(param -> new MultipleIconButtonTableCell<>(
-                new Triple<>("DOWNLOAD", resources.getString("download"), param1 -> {
-                    download(param1.getFile());
-                    return null;
-                })
+                new Quaternary<>(
+                        "DOWNLOAD",
+                        resources.getString("download"),
+                        ConnectionManager.getInstance().loggedProperty(),
+                        param1 -> {
+                            download(param1.getFile());
+                            return null;
+                        })
         ));
     }
 

@@ -1,8 +1,5 @@
 package it.unishare.common.connection.kademlia;
 
-import it.unishare.common.connection.kademlia.rpc.Message;
-import it.unishare.common.connection.kademlia.rpc.Store;
-
 import java.util.*;
 
 class Memory {
@@ -174,7 +171,7 @@ class Memory {
                     log("Publishing key " + data.getKey() + " to its nearest nodes: " + nearestNodes.toString());
 
                     nearestNodes.forEach(node -> {
-                        Store message = new Store(parentNode.getInfo(), node, data);
+                        StoreMessage message = new StoreMessage(parentNode.getInfo(), node, data);
 
                         parentNode.getDispatcher().sendMessage(message, new MessageListener() {
                             @Override

@@ -2,8 +2,6 @@ package it.unishare.common.connection.kademlia;
 
 import java.io.*;
 import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Random;
 

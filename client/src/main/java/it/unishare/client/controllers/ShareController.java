@@ -14,7 +14,7 @@ import it.unishare.common.connection.kademlia.KademliaFileData;
 import it.unishare.common.connection.kademlia.KademliaNode;
 import it.unishare.common.models.User;
 import it.unishare.common.utils.HashingUtils;
-import it.unishare.common.utils.Triple;
+import it.unishare.common.utils.Quaternary;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.ObjectProperty;
@@ -104,18 +104,30 @@ public class ShareController extends AbstractController implements Initializable
         columnTeacher.setCellValueFactory(param -> param.getValue().teacherProperty());
 
         columnActions.setCellFactory(param -> new MultipleIconButtonTableCell<>(
-                new Triple<>("EYE", resources.getString("preview"), param1 -> {
-                    preview(param1.getFile());
-                    return null;
-                }),
-                new Triple<>("FILE", resources.getString("open"), param1 -> {
-                    open(param1.getFile());
-                    return null;
-                }),
-                new Triple<>("TRASH", resources.getString("delete"), param1 -> {
-                    delete(param1.getFile());
-                    return null;
-                })
+                new Quaternary<>(
+                        "EYE",
+                        resources.getString("preview"),
+                        null,
+                        param1 -> {
+                            preview(param1.getFile());
+                            return null;
+                        }),
+                new Quaternary<>(
+                        "FILE",
+                        resources.getString("open"),
+                        null,
+                        param1 -> {
+                            open(param1.getFile());
+                            return null;
+                        }),
+                new Quaternary<>(
+                        "TRASH",
+                        resources.getString("delete"),
+                        null,
+                        param1 -> {
+                            delete(param1.getFile());
+                            return null;
+                        })
         ));
 
         // Get shared files
@@ -283,7 +295,7 @@ public class ShareController extends AbstractController implements Initializable
 
         // Error opening the PDF
         loadFileTask.setOnFailed(event -> {
-            // TODO: error message
+            showErrorDialog(resources.getString("error"), resources.getString("cant_open_file"));
         });
 
         getThreadExecutor().submit(loadFileTask);
@@ -311,7 +323,7 @@ public class ShareController extends AbstractController implements Initializable
         try {
             Desktop.getDesktop().open(new File(filePath));
         } catch (IOException e) {
-            // TODO: error message
+            showErrorDialog(resources.getString("error"), resources.getString("cant_open_directory"));
         }
     }
 

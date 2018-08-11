@@ -2,7 +2,6 @@ package it.unishare.client.controllers;
 
 import it.unishare.client.layout.Download;
 import it.unishare.client.layout.Download.DownloadStatus;
-import it.unishare.client.managers.DatabaseManager;
 import it.unishare.client.managers.DownloadManager;
 import it.unishare.common.connection.kademlia.KademliaFile;
 import javafx.fxml.FXML;
@@ -69,8 +68,8 @@ public class DownloadListCellController extends AbstractController {
     private void open() {
         try {
             Desktop.getDesktop().open(download.getPath());
-        } catch (IOException e) {
-            // TODO: error message
+        } catch (Exception e) {
+            showErrorDialog(resources.getString("error"), resources.getString("cant_open_file"));
         }
     }
 
@@ -82,8 +81,8 @@ public class DownloadListCellController extends AbstractController {
     private void openFolder() {
         try {
             Desktop.getDesktop().open(download.getPath().getParentFile());
-        } catch (IOException e) {
-            // TODO: error message
+        } catch (Exception e) {
+            showErrorDialog(resources.getString("error"), resources.getString("cant_open_directory"));
         }
     }
 
@@ -94,7 +93,6 @@ public class DownloadListCellController extends AbstractController {
     @FXML
     private void remove() {
         DownloadManager.getInstance().delete(download);
-        // TODO: remove from list
     }
 
 

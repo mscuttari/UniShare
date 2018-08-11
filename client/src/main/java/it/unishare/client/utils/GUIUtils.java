@@ -20,7 +20,6 @@ public class GUIUtils {
         table.setColumnResizePolicy( TableView.UNCONSTRAINED_RESIZE_POLICY);
 
         table.getColumns().forEach((column) -> {
-            // Min width = column header
             Text t = new Text(column.getText());
             double max = t.getLayoutBounds().getWidth();
 
@@ -37,8 +36,8 @@ public class GUIUtils {
                 }
             }
 
-            // Set the new max width with some extra space
-            column.setPrefWidth(max + 20.0d);
+            // Set the new width with some extra space
+            column.setPrefWidth(Math.max(50.0d, max + 20.0d));
         } );
     }
 

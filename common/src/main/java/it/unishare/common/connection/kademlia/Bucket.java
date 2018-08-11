@@ -1,8 +1,5 @@
 package it.unishare.common.connection.kademlia;
 
-import it.unishare.common.connection.kademlia.rpc.Message;
-import it.unishare.common.connection.kademlia.rpc.Ping;
-import it.unishare.common.utils.LogUtils;
 import it.unishare.common.utils.RandomGaussian;
 
 import java.math.BigInteger;
@@ -76,7 +73,7 @@ class Bucket extends ArrayList<NND> {
 
         // If the bucket is full, ping the least recently seen node in order to see if it's still alive
         NND firstNode = get(0);
-        Ping ping = new Ping(parentNode.getInfo(), firstNode);
+        PingMessage ping = new PingMessage(parentNode.getInfo(), firstNode);
         log("Pinging " + firstNode.getId());
 
         parentNode.getDispatcher().sendMessage(ping, new MessageListener() {

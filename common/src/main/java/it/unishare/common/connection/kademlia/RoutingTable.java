@@ -1,7 +1,5 @@
 package it.unishare.common.connection.kademlia;
 
-import it.unishare.common.utils.LogUtils;
-
 import java.math.BigInteger;
 import java.util.*;
 
@@ -18,7 +16,7 @@ class RoutingTable {
      * @param   idLength        table size
      * @param   k               bucket size
      */
-    public RoutingTable(KademliaNode parentNode, int idLength, int k) {
+    RoutingTable(KademliaNode parentNode, int idLength, int k) {
         this.parentNode = parentNode;
 
         List<Bucket> buckets = new ArrayList<>(idLength);

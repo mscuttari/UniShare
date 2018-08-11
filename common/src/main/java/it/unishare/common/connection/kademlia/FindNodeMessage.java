@@ -1,12 +1,9 @@
-package it.unishare.common.connection.kademlia.rpc;
-
-import it.unishare.common.connection.kademlia.NND;
-import it.unishare.common.connection.kademlia.NodeId;
+package it.unishare.common.connection.kademlia;
 
 import java.util.Collections;
 import java.util.List;
 
-public final class FindNode extends Message {
+public final class FindNodeMessage extends Message {
 
     private static final long serialVersionUID = -8238542814034385851L;
 
@@ -20,7 +17,7 @@ public final class FindNode extends Message {
      * @param   source          source node
      * @param   destination     destination node
      */
-    public FindNode(NND source, NND destination, NodeId targetId) {
+    public FindNodeMessage(NND source, NND destination, NodeId targetId) {
         super(source, destination);
         this.targetId = targetId;
     }
@@ -31,8 +28,8 @@ public final class FindNode extends Message {
      *
      * @return  response message
      */
-    public FindNode createResponse() {
-        FindNode response = new FindNode(getDestination(), getSource(), targetId);
+    public FindNodeMessage createResponse() {
+        FindNodeMessage response = new FindNodeMessage(getDestination(), getSource(), targetId);
         response.setId(getId());
         return response;
     }
