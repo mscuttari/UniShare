@@ -63,8 +63,7 @@ public class SearchController extends AbstractController implements Initializabl
         this.resources = resources;
 
         // Share new file
-        URL universitiesFile = getClass().getResource("/values/universities.txt");
-        List<String> universities = FileUtils.readFileLines(universitiesFile);
+        List<String> universities = FileUtils.readFileLines(getClass().getResourceAsStream("/values/universities.txt"));
         TextFields.bindAutoCompletion(txtUniversity, universities);
 
         // Search results

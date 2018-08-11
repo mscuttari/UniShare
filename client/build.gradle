@@ -5,8 +5,8 @@ plugins {
 sourceCompatibility = 1.8
 
 dependencies {
-    testImplementation group: 'junit', name: 'junit', version: '4.12'
-    implementation project(':common')
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile project(':common')
 
     // https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
     compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.23.1'
@@ -23,4 +23,17 @@ dependencies {
     // https://mvnrepository.com/artifact/org.swinglabs/pdf-renderer
     compile group: 'org.swinglabs', name: 'pdf-renderer', version: '1.0.5'
 
+}
+
+jar {
+    manifest {
+        attributes "Main-Class": "it.unishare.client.Client"
+    }
+
+    from (configurations.compile.collect { entry -> zipTree(entry) }) {
+        exclude 'META-INF/MANIFEST.MF'
+        exclude 'META-INF/*.SF'
+        exclude 'META-INF/*.DSA'
+        exclude 'META-INF/*.RSA'
+    }
 }
