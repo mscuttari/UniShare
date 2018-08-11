@@ -4,8 +4,10 @@ import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FileUtils {
 
@@ -68,6 +70,19 @@ public class FileUtils {
         }
 
         return result;
+    }
+
+
+    /**
+     * Read file lines
+     *
+     * @param   inputStream     file input stream
+     * @return  lines
+     */
+    public static List<String> readFileLines(InputStream inputStream) {
+        InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+        return bufferedReader.lines().collect(Collectors.toList());
     }
 
 }

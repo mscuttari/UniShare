@@ -93,8 +93,7 @@ public class ShareController extends AbstractController implements Initializable
         this.resources = resources;
 
         // Share new file
-        URL universitiesFile = getClass().getResource("/values/universities.txt");
-        List<String> universities = FileUtils.readFileLines(universitiesFile);
+        List<String> universities = FileUtils.readFileLines(getClass().getResourceAsStream("/values/universities.txt"));
         TextFields.bindAutoCompletion(txtUniversity, universities);
 
         // Shared files
