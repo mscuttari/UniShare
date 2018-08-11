@@ -31,7 +31,10 @@ public class Settings {
      * @return  data directory path
      */
     public static String getDataPath() {
-        return getPreferences().get(DATA_PATH_SETTING, getDefaultDataPath());
+        String path = getPreferences().get(DATA_PATH_SETTING, getDefaultDataPath());
+        File directory = new File(path);
+        directory.mkdirs();
+        return path;
     }
 
 
