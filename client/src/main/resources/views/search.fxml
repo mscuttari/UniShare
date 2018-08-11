@@ -75,9 +75,8 @@
                     <TableView fx:id="tableFiles">
 
                         <columns>
-                            <TableColumn fx:id="columnRating"       text="%rating" />
-                            <TableColumn fx:id="columnAuthor"       text="%author" />
                             <TableColumn fx:id="columnTitle"        text="%title"/>
+                            <TableColumn fx:id="columnAuthor"       text="%author" />
                             <TableColumn fx:id="columnUniversity"   text="%university"/>
                             <TableColumn fx:id="columnDepartment"   text="%department"/>
                             <TableColumn fx:id="columnCourse"       text="%course"/>

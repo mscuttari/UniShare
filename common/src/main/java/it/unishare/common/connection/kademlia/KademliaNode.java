@@ -1,7 +1,6 @@
 package it.unishare.common.connection.kademlia;
 
 import com.google.common.util.concurrent.MoreExecutors;
-import it.unishare.common.connection.kademlia.rpc.*;
 import it.unishare.common.exceptions.NodeNotConnectedException;
 import it.unishare.common.utils.ListUtils;
 import it.unishare.common.utils.LogUtils;
@@ -327,36 +326,36 @@ public class KademliaNode {
         getRoutingTable().addNode(message.getSource());
 
         // PING
-        if (message instanceof Ping) {
+        if (message instanceof PingMessage) {
             log("Ping request received from " + message.getSource().getId());
-            Ping response = ((Ping) message).createResponse();
+            PingMessage response = ((PingMessage) message).createResponse();
             getDispatcher().sendMessage(response);
             log("Ping response sent to " + response.getDestination().getId());
         }
 
         // FIND_NODE
-        if (message instanceof FindNode) {
-            NodeId targetId = ((FindNode) message).getTargetId();
+        if (message instanceof FindNodeMessage) {
+            NodeId targetId = ((FindNodeMessage) message).getTargetId();
             log("Lookup request received from " + message.getSource().getId() + " for " + targetId);
-            FindNode response = ((FindNode) message).createResponse();
+            FindNodeMessage response = ((FindNodeMessage) message).createResponse();
             response.setNearestNodes(getRoutingTable().getNearestNodes(targetId, BUCKET_SIZE));
             getDispatcher().sendMessage(response);
         }
 
         // STORE
-        if (message instanceof Store) {
-            KademliaFile data = ((Store) message).getData();
+        if (message instanceof StoreMessage) {
+            KademliaFile data = ((StoreMessage) message).getData();
             log("Store request received from " + message.getSource().getId() + " for " + data.getKey());
             getMemory().store(data);
-            Store response = ((Store) message).createResponse();
+            StoreMessage response = ((StoreMessage) message).createResponse();
             getDispatcher().sendMessage(response);
         }
 
         // FIND_DATA
-        if (message instanceof FindData) {
-            KademliaFileData filter = ((FindData) message).getFilter();
+        if (message instanceof FindDataMessage) {
+            KademliaFileData filter = ((FindDataMessage) message).getFilter();
             log("Search request received from " + message.getSource().getId() + " for " + filter);
-            FindData response = ((FindData) message).createResponse(getMemory().getFiles(filter));
+            FindDataMessage response = ((FindDataMessage) message).createResponse(getMemory().getFiles(filter));
             getDispatcher().sendMessage(response);
         }
     }
@@ -377,7 +376,7 @@ public class KademliaNode {
         }
 
         if (!getInfo().equals(bootstrapNode)) {
-            Ping message = new Ping(getInfo(), bootstrapNode);
+            PingMessage message = new PingMessage(getInfo(), bootstrapNode);
 
             getDispatcher().sendMessage(message, new MessageListener() {
                 @Override
@@ -420,7 +419,7 @@ public class KademliaNode {
 
     private void ping(NND node, MessageListener listener) {
         log("Pinging " + node.getId());
-        Ping message = new Ping(getInfo(), node);
+        PingMessage message = new PingMessage(getInfo(), node);
         getDispatcher().sendMessage(message, listener);
     }
 
@@ -490,7 +489,7 @@ public class KademliaNode {
         List<NND> queriedNodes = new ArrayList<>();
 
         nearestNodes.forEach(node -> {
-            FindNode message = new FindNode(getInfo(), node, targetId);
+            FindNodeMessage message = new FindNodeMessage(getInfo(), node, targetId);
 
             getDispatcher().sendMessage(message, new MessageListener() {
                 @Override
@@ -500,9 +499,9 @@ public class KademliaNode {
                     getRoutingTable().addNode(response.getSource());
 
                     // Get query groups
-                    assert response instanceof FindNode;
+                    assert response instanceof FindNodeMessage;
 
-                    List<NND> nearestNodes = new ArrayList<>(((FindNode) response).getNearestNodes());
+                    List<NND> nearestNodes = new ArrayList<>(((FindNodeMessage) response).getNearestNodes());
                     nearestNodes.remove(getInfo());
                     log("Recursive lookup nodes: " + nearestNodes);
 
@@ -537,7 +536,7 @@ public class KademliaNode {
             if (queriedNodes.contains(recipient))
                 return;
 
-            FindNode message = new FindNode(getInfo(), recipient, targetId);
+            FindNodeMessage message = new FindNodeMessage(getInfo(), recipient, targetId);
 
             getDispatcher().sendMessage(message, new MessageListener() {
                 @Override
@@ -550,9 +549,9 @@ public class KademliaNode {
                     getRoutingTable().addNode(response.getSource());
 
                     // Get query groups
-                    assert response instanceof FindNode;
+                    assert response instanceof FindNodeMessage;
 
-                    List<NND> nearestNodes = new ArrayList<>(((FindNode) response).getNearestNodes());
+                    List<NND> nearestNodes = new ArrayList<>(((FindNodeMessage) response).getNearestNodes());
                     nearestNodes.remove(getInfo());
                     nearestNodes.removeAll(queriedNodes);
                     log("Recursive lookup nodes: " + nearestNodes);
@@ -685,13 +684,13 @@ public class KademliaNode {
         List<NND> knownNodes = getRoutingTable().getAllNodes();
 
         knownNodes.forEach(node -> {
-            FindData message = new FindData(getInfo(), node, filter);
+            FindDataMessage message = new FindDataMessage(getInfo(), node, filter);
 
             getDispatcher().sendMessage(message, new MessageListener() {
                 @Override
                 public void onSuccess(Message response) {
-                    if (response instanceof FindData) {
-                        for (KademliaFile file : ((FindData) response).getFiles()) {
+                    if (response instanceof FindDataMessage) {
+                        for (KademliaFile file : ((FindDataMessage) response).getFiles()) {
                             if ((file.getOwner().equals(getInfo())))
                                 continue;
 

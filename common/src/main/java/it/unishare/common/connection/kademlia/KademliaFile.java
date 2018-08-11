@@ -1,8 +1,6 @@
 package it.unishare.common.connection.kademlia;
 
 import java.io.Serializable;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 
 public class KademliaFile implements Serializable {
 

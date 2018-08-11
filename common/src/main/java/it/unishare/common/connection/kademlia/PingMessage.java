@@ -1,8 +1,6 @@
-package it.unishare.common.connection.kademlia.rpc;
+package it.unishare.common.connection.kademlia;
 
-import it.unishare.common.connection.kademlia.NND;
-
-public final class Ping extends Message {
+final class PingMessage extends Message {
 
     private static final long serialVersionUID = 5524791019372047864L;
 
@@ -13,7 +11,7 @@ public final class Ping extends Message {
      * @param   source          source node
      * @param   destination     destination node
      */
-    public Ping(NND source, NND destination) {
+    public PingMessage(NND source, NND destination) {
         super(source, destination);
     }
 
@@ -23,8 +21,8 @@ public final class Ping extends Message {
      *
      * @return  response message
      */
-    public Ping createResponse() {
-        Ping response = new Ping(getDestination(), getSource());
+    public PingMessage createResponse() {
+        PingMessage response = new PingMessage(getDestination(), getSource());
         response.setId(getId());
         return response;
     }

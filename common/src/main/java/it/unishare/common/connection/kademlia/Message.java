@@ -1,6 +1,4 @@
-package it.unishare.common.connection.kademlia.rpc;
-
-import it.unishare.common.connection.kademlia.NND;
+package it.unishare.common.connection.kademlia;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -8,7 +6,7 @@ import java.util.UUID;
 /**
  * Remote Procedure Call
  */
-public abstract class Message implements Serializable {
+abstract class Message implements Serializable {
 
     private static final long serialVersionUID = -4088040739038751081L;
 

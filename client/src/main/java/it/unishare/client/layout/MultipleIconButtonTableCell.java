@@ -1,6 +1,8 @@
 package it.unishare.client.layout;
 
+import it.unishare.common.utils.Quaternary;
 import it.unishare.common.utils.Triple;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.geometry.Pos;
 import javafx.scene.control.TableCell;
 import javafx.scene.layout.HBox;
@@ -14,21 +16,25 @@ public class MultipleIconButtonTableCell<S, T> extends TableCell<S, T> {
     /**
      * Constructor
      *
-     * @param   buttons     list of {@link Triple} containing icon name, action description and callback of each button
+     * @param   buttons     list of {@link Triple} containing icon name, action description, visibility and callback of each button
      */
     @SafeVarargs
-    public MultipleIconButtonTableCell(Triple<String, String, Callback<S, Object>>... buttons) {
+    public MultipleIconButtonTableCell(Quaternary<String, String, ObservableBooleanValue, Callback<S, Object>>... buttons) {
         this.hbox = new HBox();
         this.hbox.setSpacing(5);
         this.hbox.setAlignment(Pos.CENTER);
 
-        for (Triple<String, String, Callback<S, Object>> button : buttons) {
+        for (Quaternary<String, String, ObservableBooleanValue, Callback<S, Object>> button : buttons) {
             String iconName = button.first;
             String description = button.second;
-            Callback<S, Object> callback = button.third;
+            ObservableBooleanValue visibility = button.third;
+            Callback<S, Object> callback = button.fourth;
 
             IconButton iconButton = new IconButton(iconName, description);
             iconButton.setOnAction(event -> callback.call((getTableView().getItems().get(getIndex()))));
+
+            if (visibility != null)
+                iconButton.visibleProperty().bind(visibility);
 
             hbox.getChildren().add(iconButton);
         }

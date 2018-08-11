@@ -21,7 +21,7 @@ class Uploader implements Runnable {
      * @param   uploader    uploader node
      * @param   socket      request socket
      */
-    public Uploader(KademliaNode uploader, Socket socket) {
+    Uploader(KademliaNode uploader, Socket socket) {
         this.uploader = uploader;
         this.socket = socket;
     }
@@ -70,13 +70,6 @@ class Uploader implements Runnable {
         LogUtils.d(TAG, "Uploading the file " + file.getKey());
 
         try (InputStream in = new FileInputStream(myFile)) {
-
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
             IOUtils.copy(in, out);
             LogUtils.d(TAG, "Upload completed for the file " + file.getKey());
 
