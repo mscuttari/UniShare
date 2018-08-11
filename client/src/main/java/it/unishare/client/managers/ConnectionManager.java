@@ -42,7 +42,7 @@ public class ConnectionManager {
         logged.addListener((observable, oldValue, newValue) -> {
             if (newValue) {
                 // Logged in
-                node.setFileProvider(new FileManager(user.getId()));
+                node.setFileProvider(new FilesManager(user.getId()));
 
                 Collection<KademliaFile> files = DatabaseManager.getInstance().getSharedFiles(user);
                 node.storeFiles(files);

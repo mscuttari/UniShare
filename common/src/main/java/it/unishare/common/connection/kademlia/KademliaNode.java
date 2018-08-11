@@ -2,6 +2,7 @@ package it.unishare.common.connection.kademlia;
 
 import com.google.common.util.concurrent.MoreExecutors;
 import it.unishare.common.exceptions.NodeNotConnectedException;
+import it.unishare.common.models.Review;
 import it.unishare.common.utils.ListUtils;
 import it.unishare.common.utils.LogUtils;
 import it.unishare.common.utils.Pair;
@@ -34,7 +35,7 @@ public class KademliaNode {
     private Memory memory;
 
     // Files
-    private FileProvider fileProvider;
+    private FilesProvider fileProvider;
 
 
     /**
@@ -48,7 +49,7 @@ public class KademliaNode {
     /**
      * Constructor
      */
-    public KademliaNode(FileProvider fileProvider) {
+    public KademliaNode(FilesProvider fileProvider) {
         this.fileProvider = fileProvider;
 
         this.executorService = Executors.newCachedThreadPool(r -> {
@@ -178,7 +179,7 @@ public class KademliaNode {
      *
      * @return  file provider
      */
-    FileProvider getFileProvider() {
+    FilesProvider getFileProvider() {
         return fileProvider;
     }
 
@@ -188,7 +189,7 @@ public class KademliaNode {
      *
      * @param   fileProvider    file provider
      */
-    public void setFileProvider(FileProvider fileProvider) {
+    public void setFileProvider(FilesProvider fileProvider) {
         this.fileProvider = fileProvider;
     }
 
@@ -265,7 +266,7 @@ public class KademliaNode {
     private void startServer() {
         // Response server
         executorService.submit(() -> {
-            DatagramPacket packet = new DatagramPacket(new byte[16416], 16416);
+            DatagramPacket packet = new DatagramPacket(new byte[65535], 65535);
             log("Response server started");
             serverSemaphore.release();
 
@@ -356,6 +357,21 @@ public class KademliaNode {
             KademliaFileData filter = ((FindDataMessage) message).getFilter();
             log("Search request received from " + message.getSource().getId() + " for " + filter);
             FindDataMessage response = ((FindDataMessage) message).createResponse(getMemory().getFiles(filter));
+            getDispatcher().sendMessage(response);
+        }
+
+        // REVIEW
+        if (message instanceof ReviewMessage) {
+            log("Review message received from " + message.getSource().getId() + " for " + ((ReviewMessage) message).getFile().getKey());
+            ReviewMessage response = ((ReviewMessage) message).createResponse();
+
+            if (response.getType() == ReviewMessage.ReviewMessageType.GET) {
+                response.setReviews(fileProvider.getReviews(response.getFile(), response.getPage()));
+
+            } else if (response.getType() == ReviewMessage.ReviewMessageType.SET) {
+                fileProvider.saveReview(response.getFile(), response.getReview());
+            }
+
             getDispatcher().sendMessage(response);
         }
     }
@@ -731,6 +747,43 @@ public class KademliaNode {
     public Future<?> downloadFile(KademliaFile file, File downloadPath) {
         Runnable downloader = new Downloader(file, downloadPath);
         return downloadExecutorService.submit(downloader);
+    }
+
+
+    /**
+     * Get file reviews
+     *
+     * @param   file    file
+     * @param   page    reviews page number
+     */
+    public void getFileReviews(KademliaFile file, int page, ReviewsListener listener) {
+        ReviewMessage message = new ReviewMessage(getInfo(), file.getOwner(), file, page);
+        getDispatcher().sendMessage(message, new MessageListener() {
+            @Override
+            public void onSuccess(Message response) {
+                if (listener != null && response instanceof ReviewMessage) {
+                    listener.onResponse(((ReviewMessage) response).getPage(), ((ReviewMessage) response).getReviews());
+                }
+            }
+
+            @Override
+            public void onFailure() {
+                ping(message.getDestination());
+            }
+        });
+    }
+
+
+    /**
+     * Send review
+     *
+     * @param   file        file
+     * @param   review      review
+     */
+    public void sendReview(KademliaFile file, Review review) {
+        log("Sending review for file " + file.getKey());
+        ReviewMessage message = new ReviewMessage(getInfo(), file.getOwner(), file, review);
+        getDispatcher().sendMessage(message);
     }
 
 

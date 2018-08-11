@@ -6,7 +6,7 @@ import it.unishare.client.managers.ConnectionManager;
 import it.unishare.client.managers.DatabaseManager;
 import it.unishare.client.layout.GuiFile;
 import it.unishare.client.layout.MultipleIconButtonTableCell;
-import it.unishare.client.managers.FileManager;
+import it.unishare.client.managers.FilesManager;
 import it.unishare.client.utils.FileUtils;
 import it.unishare.client.utils.GUIUtils;
 import it.unishare.common.connection.kademlia.KademliaFile;
@@ -210,7 +210,7 @@ public class ShareController extends AbstractController implements Initializable
         );
 
         File source = new File(filePath);
-        File destination = new File(FileManager.getFilePath(user.getId(), file));
+        File destination = new File(FilesManager.getFilePath(user.getId(), file));
         FileUtils.copyFile(source, destination);
 
         DatabaseManager.getInstance().addSharedFiles(user, file);
@@ -270,7 +270,7 @@ public class ShareController extends AbstractController implements Initializable
      */
     private void preview(KademliaFile file) {
         User user = ConnectionManager.getInstance().getUser();
-        String filePath = FileManager.getFilePath(user.getId(), file);
+        String filePath = FilesManager.getFilePath(user.getId(), file);
 
         // Load PDF
         Task<PDFFile> loadFileTask = new Task<PDFFile>() {
@@ -318,7 +318,7 @@ public class ShareController extends AbstractController implements Initializable
      */
     private void open(KademliaFile file) {
         User user = ConnectionManager.getInstance().getUser();
-        String filePath = FileManager.getFilePath(user.getId(), file);
+        String filePath = FilesManager.getFilePath(user.getId(), file);
 
         try {
             Desktop.getDesktop().open(new File(filePath));
@@ -336,7 +336,7 @@ public class ShareController extends AbstractController implements Initializable
     private void delete(KademliaFile file) {
         // Delete the real file
         User user = ConnectionManager.getInstance().getUser();
-        String filePath = FileManager.getFilePath(user.getId(), file);
+        String filePath = FilesManager.getFilePath(user.getId(), file);
 
         try {
             Files.delete(Paths.get(filePath));

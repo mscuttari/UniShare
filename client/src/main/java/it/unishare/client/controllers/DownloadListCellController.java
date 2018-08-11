@@ -10,7 +10,6 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.HBox;
 
 import java.awt.*;
-import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 

@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import it.unishare.client.layout.IconButton?>
+<?import it.unishare.client.layout.LimitedTextArea?>
 <?import org.controlsfx.control.HiddenSidesPane?>
+<?import org.controlsfx.control.Rating?>
 <?import java.net.URL?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
@@ -25,6 +28,7 @@
             <VBox spacing="20"
                   styleClass="root">
 
+                <!-- Search filters -->
                 <VBox styleClass="box-section" spacing="10">
 
                     <Label styleClass="title" text="%search_filters" />
@@ -69,10 +73,12 @@
 
                 </VBox>
 
+                <!-- Search results -->
                 <VBox styleClass="box-section" spacing="10">
                     <Label styleClass="title" text="%search_results" />
 
-                    <TableView fx:id="tableFiles">
+                    <TableView fx:id="tableFiles"
+                               maxHeight="1.7976931348623157E308">
 
                         <columns>
                             <TableColumn fx:id="columnTitle"        text="%title"/>
@@ -88,7 +94,80 @@
             </VBox>
         </content>
 
-        <!-- TODO: reviews right panel -->
+        <right>
+            <!-- Reviews -->
+            <AnchorPane styleClass="reviews-page">
+
+
+                    <VBox AnchorPane.topAnchor="0.0"
+                          AnchorPane.bottomAnchor="0.0"
+                          AnchorPane.leftAnchor="0.0"
+                          AnchorPane.rightAnchor="0.0"
+                          spacing="20">
+
+                        <!-- My review -->
+                        <VBox fx:id="boxMyReview"
+                              styleClass="box-section">
+
+                            <Label styleClass="title" text="%my_review"/>
+
+                            <VBox spacing="5">
+                                <Rating fx:id="ratingReview" styleClass="button-transparent" />
+
+                                <LimitedTextArea fx:id="txtReviewBody"
+                                                 maxLength="500" />
+
+                                <HBox>
+                                    <Button styleClass="button-left"
+                                            maxWidth="1.7976931348623157E308"
+                                            HBox.hgrow="ALWAYS"
+                                            onAction="#saveReview"
+                                            text="%save"/>
+
+                                    <Button styleClass="button-right"
+                                            maxWidth="1.7976931348623157E308"
+                                            HBox.hgrow="ALWAYS"
+                                            onAction="#deleteReview"
+                                            text="%delete" />
+                                </HBox>
+
+                            </VBox>
+                        </VBox>
+
+                        <!-- Reviews -->
+                        <VBox styleClass="box-section"
+                              maxHeight="1.7976931348623157E308"
+                              VBox.vgrow="ALWAYS"
+                              spacing="10">
+
+                            <Label styleClass="title" text="%reviews"/>
+
+                            <VBox maxHeight="1.7976931348623157E308"
+                                  VBox.vgrow="ALWAYS"
+                                  spacing="5">
+
+                                <ListView fx:id="lvReviews"
+                                          styleClass="lv-reviews"
+                                          maxHeight="1.7976931348623157E308"
+                                          VBox.vgrow="ALWAYS" />
+
+                                <Button maxWidth="1.7976931348623157E308"
+                                        HBox.hgrow="ALWAYS"
+                                        onAction="#loadMoreReviews"
+                                        text="%load_more_reviews" />
+                            </VBox>
+                        </VBox>
+
+                    </VBox>
+
+                    <!-- Close review page button -->
+                    <IconButton AnchorPane.topAnchor="0.0"
+                                AnchorPane.rightAnchor="0.0"
+                                styleClass="button-transparent"
+                                icon="TIMES"
+                                onAction="#closeReviews" />
+                </AnchorPane>
+        </right>
 
     </HiddenSidesPane>
 
