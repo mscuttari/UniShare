@@ -1,4 +1,4 @@
-package it.unishare.common.connection.kademlia;
+package it.unishare.common.kademlia;
 
 final class PingMessage extends Message {
 

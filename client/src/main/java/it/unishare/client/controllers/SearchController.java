@@ -1,5 +1,8 @@
 package it.unishare.client.controllers;
 
+import it.unishare.common.connection.dht.NoteFile;
+import it.unishare.common.connection.dht.NoteMetadata;
+import it.unishare.common.connection.dht.UniShareNode;
 import it.unishare.client.layout.Download;
 import it.unishare.client.layout.ReviewListCell;
 import it.unishare.client.managers.ConnectionManager;
@@ -9,9 +12,7 @@ import it.unishare.client.layout.GuiFile;
 import it.unishare.client.layout.MultipleIconButtonTableCell;
 import it.unishare.client.utils.FileUtils;
 import it.unishare.client.utils.GUIUtils;
-import it.unishare.common.connection.kademlia.KademliaFile;
-import it.unishare.common.connection.kademlia.KademliaFileData;
-import it.unishare.common.connection.kademlia.KademliaNode;
+import it.unishare.common.kademlia.KademliaFile;
 import it.unishare.common.exceptions.NodeNotConnectedException;
 import it.unishare.common.models.Review;
 import it.unishare.common.models.User;
@@ -61,7 +62,7 @@ public class SearchController extends AbstractController implements Initializabl
     @FXML private TableColumn<GuiFile, Void> columnActions;
 
     // Reviews
-    private KademliaFile reviewsCurrentFile;
+    private NoteFile reviewsCurrentFile;
     private int currentReviewsPage;
     @FXML private VBox boxMyReview;
     @FXML private Rating ratingReview;
@@ -128,8 +129,8 @@ public class SearchController extends AbstractController implements Initializabl
         String course = txtCourse.getText().trim();
         String teacher = txtTeacher.getText().trim();
 
-        KademliaFileData fileData = new KademliaFileData(title, author, university, department, course, teacher);
-        KademliaNode node = ConnectionManager.getInstance().getNode();
+        NoteMetadata fileData = new NoteMetadata(title, author, university, department, course, teacher);
+        UniShareNode node = ConnectionManager.getInstance().getNode();
 
         try {
             node.searchData(fileData, files -> {
@@ -165,7 +166,7 @@ public class SearchController extends AbstractController implements Initializabl
      * @param   files       files list
      * @return  GUI models list
      */
-    private static ObservableList<GuiFile> getGuiFilesList(Collection<KademliaFile> files) {
+    private static ObservableList<GuiFile> getGuiFilesList(Collection<NoteFile> files) {
         ObservableList<GuiFile> result = FXCollections.observableArrayList();
         files.forEach(file -> result.add(new GuiFile(file)));
         return result;
@@ -189,7 +190,7 @@ public class SearchController extends AbstractController implements Initializabl
      *
      * @param   file    file to be downloaded
      */
-    private void download(KademliaFile file) {
+    private void download(NoteFile file) {
         File downloadPath = chooseDownloadPath();
 
         if (downloadPath != null) {
@@ -219,7 +220,7 @@ public class SearchController extends AbstractController implements Initializabl
      *
      * @param   file    file
      */
-    private void showFileReviews(KademliaFile file) {
+    private void showFileReviews(NoteFile file) {
         currentReviewsPage = 1;
         boxMyReview.setVisible(isFileDownloaded(file));
 
@@ -233,9 +234,9 @@ public class SearchController extends AbstractController implements Initializabl
      *
      * @param   file    file
      */
-    private void loadFileReviews(KademliaFile file) {
+    private void loadFileReviews(NoteFile file) {
         reviewsCurrentFile = file;
-        KademliaNode node = ConnectionManager.getInstance().getNode();
+        UniShareNode node = ConnectionManager.getInstance().getNode();
 
         node.getFileReviews(file, currentReviewsPage, (page, reviews) -> {
             User user = ConnectionManager.getInstance().getUser();
@@ -295,7 +296,7 @@ public class SearchController extends AbstractController implements Initializabl
 
         Review review = new Review(author, rating, body);
 
-        KademliaNode node = ConnectionManager.getInstance().getNode();
+        UniShareNode node = ConnectionManager.getInstance().getNode();
 
         if (reviewsCurrentFile != null)
             node.sendReview(reviewsCurrentFile, review);
@@ -313,7 +314,7 @@ public class SearchController extends AbstractController implements Initializabl
         String author = user.getFullName();
         Review review = new Review(author, rating, null);
 
-        KademliaNode node = ConnectionManager.getInstance().getNode();
+        UniShareNode node = ConnectionManager.getInstance().getNode();
 
         if (reviewsCurrentFile != null)
             node.sendReview(reviewsCurrentFile, review);

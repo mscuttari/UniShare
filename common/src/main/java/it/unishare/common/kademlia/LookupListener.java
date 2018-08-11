@@ -1,4 +1,4 @@
-package it.unishare.common.connection.kademlia;
+package it.unishare.common.kademlia;
 
 import java.util.EventListener;
 import java.util.List;

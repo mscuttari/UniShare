@@ -1,10 +1,10 @@
-package it.unishare.common.connection.kademlia;
+package it.unishare.common.kademlia;
 
-final class StoreMessage extends Message {
+final class StoreMessage<F extends KademliaFile<FD>, FD extends KademliaFileData> extends Message {
 
     private static final long serialVersionUID = 5859381422717733578L;
 
-    private KademliaFile data;
+    private F data;
 
 
     /**
@@ -14,7 +14,7 @@ final class StoreMessage extends Message {
      * @param   destination     destination node
      * @param   data            data to be stored
      */
-    public StoreMessage(NND source, NND destination, KademliaFile data) {
+    public StoreMessage(NND source, NND destination, F data) {
         super(source, destination);
         this.data = data;
     }
@@ -26,7 +26,7 @@ final class StoreMessage extends Message {
      * @return  response message
      */
     public StoreMessage createResponse() {
-        StoreMessage response = new StoreMessage(getDestination(), getSource(), null);
+        StoreMessage<F, FD> response = new StoreMessage<>(getDestination(), getSource(), null);
         response.setId(getId());
         return response;
     }
@@ -37,7 +37,7 @@ final class StoreMessage extends Message {
      *
      * @return  data
      */
-    public KademliaFile getData() {
+    public F getData() {
         return data;
     }
 
@@ -47,7 +47,7 @@ final class StoreMessage extends Message {
      *
      * @param   data    (key, value) data
      */
-    public void setData(KademliaFile data) {
+    public void setData(F data) {
         this.data = data;
     }
 

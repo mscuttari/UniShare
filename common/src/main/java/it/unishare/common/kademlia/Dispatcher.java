@@ -1,4 +1,4 @@
-package it.unishare.common.connection.kademlia;
+package it.unishare.common.kademlia;
 
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
@@ -13,7 +13,7 @@ import java.util.concurrent.CompletableFuture;
 
 class Dispatcher {
 
-    private Map<Message, MessageListener> listeners;
+    private Map<Message, MessageListener> listeners = new HashMap<>();
     private DatagramSocket socket;
 
 
@@ -23,7 +23,6 @@ class Dispatcher {
      * @throws  SocketException in case of initialization error
      */
     public Dispatcher() throws SocketException {
-        this.listeners = new HashMap<>();
         this.socket = new DatagramSocket();
     }
 

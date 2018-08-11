@@ -1,4 +1,4 @@
-package it.unishare.common.connection.kademlia;
+package it.unishare.common.kademlia;
 
 import java.util.Collection;
 import java.util.EventListener;
@@ -8,13 +8,13 @@ import java.util.EventListener;
  *
  * {@link #found(Collection)} is called when a new file matching the search filter provided is found
  */
-public interface SearchListener extends EventListener {
+public interface SearchListener<F extends KademliaFile<FD>, FD extends KademliaFileData> extends EventListener {
 
     /**
      * Called when a new file matching the search filter is found
      *
-     * @param   files   unmodifiable lsit of all the found files matching the search filter
+     * @param   files   unmodifiable list of all the found files matching the search filter
      */
-    void found(Collection<KademliaFile> files);
+    void found(Collection<F> files);
 
 }

@@ -1,6 +1,6 @@
 package it.unishare.common.connection.server;
 
-import it.unishare.common.connection.kademlia.NND;
+import it.unishare.common.kademlia.NND;
 import it.unishare.common.exceptions.*;
 import it.unishare.common.models.User;
 

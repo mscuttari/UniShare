@@ -2,6 +2,9 @@ package it.unishare.client.controllers;
 
 import com.sun.pdfview.PDFFile;
 import com.sun.pdfview.PDFPage;
+import it.unishare.common.connection.dht.NoteFile;
+import it.unishare.common.connection.dht.NoteMetadata;
+import it.unishare.common.connection.dht.UniShareNode;
 import it.unishare.client.managers.ConnectionManager;
 import it.unishare.client.managers.DatabaseManager;
 import it.unishare.client.layout.GuiFile;
@@ -9,9 +12,7 @@ import it.unishare.client.layout.MultipleIconButtonTableCell;
 import it.unishare.client.managers.FilesManager;
 import it.unishare.client.utils.FileUtils;
 import it.unishare.client.utils.GUIUtils;
-import it.unishare.common.connection.kademlia.KademliaFile;
-import it.unishare.common.connection.kademlia.KademliaFileData;
-import it.unishare.common.connection.kademlia.KademliaNode;
+import it.unishare.common.kademlia.KademliaFile;
 import it.unishare.common.models.User;
 import it.unishare.common.utils.HashingUtils;
 import it.unishare.common.utils.Quaternary;
@@ -200,10 +201,10 @@ public class ShareController extends AbstractController implements Initializable
         // Copy and store file
         User user = ConnectionManager.getInstance().getUser();
 
-        KademliaNode node = ConnectionManager.getInstance().getNode();
-        KademliaFileData data = new KademliaFileData(title, user.getFullName(), university, department, course, teacher);
+        UniShareNode node = ConnectionManager.getInstance().getNode();
+        NoteMetadata data = new NoteMetadata(title, user.getFullName(), university, department, course, teacher);
 
-        KademliaFile file = new KademliaFile(
+        NoteFile file = new NoteFile(
                 HashingUtils.fileSHA1(filePath),
                 node.getInfo(),
                 data
@@ -252,10 +253,10 @@ public class ShareController extends AbstractController implements Initializable
      */
     private void loadFiles() {
         User user = ConnectionManager.getInstance().getUser();
-        List<KademliaFile> files = DatabaseManager.getInstance().getSharedFiles(user);
+        List<NoteFile> files = DatabaseManager.getInstance().getSharedFiles(user);
         ObservableList<GuiFile> guiFiles = FXCollections.observableArrayList();
 
-        for (KademliaFile file : files)
+        for (NoteFile file : files)
             guiFiles.add(new GuiFile(file));
 
         tableFiles.setItems(guiFiles);
@@ -294,9 +295,7 @@ public class ShareController extends AbstractController implements Initializable
         });
 
         // Error opening the PDF
-        loadFileTask.setOnFailed(event -> {
-            showErrorDialog(resources.getString("error"), resources.getString("cant_open_file"));
-        });
+        loadFileTask.setOnFailed(event -> showErrorDialog(resources.getString("error"), resources.getString("cant_open_file")));
 
         getThreadExecutor().submit(loadFileTask);
     }

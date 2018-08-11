@@ -1,11 +1,11 @@
 package it.unishare.client.layout;
 
-import it.unishare.common.connection.kademlia.KademliaFile;
+import it.unishare.common.connection.dht.NoteFile;
 import javafx.beans.property.*;
 
 public class GuiFile {
 
-    private KademliaFile file;
+    private NoteFile file;
 
     private StringProperty title;
     private StringProperty author;
@@ -18,7 +18,7 @@ public class GuiFile {
     /**
      * Constructor
      */
-    public GuiFile(KademliaFile file) {
+    public GuiFile(NoteFile file) {
         this.file = file;
 
         this.title = new SimpleStringProperty(file.getData().getTitle());
@@ -35,7 +35,7 @@ public class GuiFile {
      *
      * @return  file
      */
-    public KademliaFile getFile() {
+    public NoteFile getFile() {
         return file;
     }
 

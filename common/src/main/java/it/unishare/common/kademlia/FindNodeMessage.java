@@ -1,9 +1,9 @@
-package it.unishare.common.connection.kademlia;
+package it.unishare.common.kademlia;
 
 import java.util.Collections;
 import java.util.List;
 
-public final class FindNodeMessage extends Message {
+final class FindNodeMessage extends Message {
 
     private static final long serialVersionUID = -8238542814034385851L;
 

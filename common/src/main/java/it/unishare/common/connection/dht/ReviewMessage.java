@@ -1,11 +1,14 @@
-package it.unishare.common.connection.kademlia;
+package it.unishare.common.connection.dht;
 
+import it.unishare.common.kademlia.KademliaFile;
+import it.unishare.common.kademlia.Message;
+import it.unishare.common.kademlia.NND;
 import it.unishare.common.models.Review;
 
 import java.util.ArrayList;
 import java.util.List;
 
-final class ReviewMessage extends Message {
+public final class ReviewMessage extends Message {
 
     public enum ReviewMessageType {
         GET,
@@ -69,7 +72,7 @@ final class ReviewMessage extends Message {
     public ReviewMessage createResponse() {
         ReviewMessage response;
 
-        if (type == ReviewMessageType.GET) {
+        if (type == ReviewMessage.ReviewMessageType.GET) {
             response = new ReviewMessage(getDestination(), getSource(), file, page);
         } else {
             response = new ReviewMessage(getDestination(), getSource(), file, review);

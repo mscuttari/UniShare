@@ -1,11 +1,11 @@
-package it.unishare.common.connection.kademlia;
+package it.unishare.common.kademlia;
 
 import java.util.*;
 
-class Memory {
+class Memory<F extends KademliaFile<FD>, FD extends KademliaFileData> {
 
-    private final KademliaNode parentNode;
-    private final Map<NodeId, KademliaFile> memory = new HashMap<>();
+    private final KademliaNode<F, FD> parentNode;
+    private final Map<NodeId, F> memory = new HashMap<>();
     private final Map<NodeId, Timer> republishTimers = new HashMap<>();
     private final Map<NodeId, Timer> expirationTimers = new HashMap<>();
 
@@ -15,7 +15,7 @@ class Memory {
      *
      * @param   parentNode      parent node
      */
-    public Memory(KademliaNode parentNode) {
+    public Memory(KademliaNode<F, FD> parentNode) {
         this.parentNode = parentNode;
     }
 
@@ -26,7 +26,7 @@ class Memory {
      * @param   key     key the value is mapped to
      * @return  value associated to the key
      */
-    public KademliaFile get(NodeId key) {
+    public F get(NodeId key) {
         return memory.get(key);
     }
 
@@ -36,7 +36,7 @@ class Memory {
      *
      * @return  all files
      */
-    public Collection<KademliaFile> getAllFiles() {
+    public Collection<F> getAllFiles() {
         return memory.values();
     }
 
@@ -47,17 +47,17 @@ class Memory {
      * @param   filter      filter
      * @return  files matching the filter
      */
-    public Collection<KademliaFile> getFiles(KademliaFileData filter) {
-        Collection<KademliaFile> allFiles = getAllFiles();
+    public Collection<F> getFiles(FD filter) {
+        Collection<F> allFiles = getAllFiles();
 
         if (filter == null) {
             return allFiles;
         } else {
-            Collection<KademliaFile> result = new ArrayList<>();
+            Collection<F> result = new ArrayList<>();
             log("All files: " + allFiles);
 
             allFiles.forEach(file -> {
-                if (isFileMatchingFilter(file, filter)) {
+                if (file.matchesFilter(filter)) {
                     log("File found: " + file.getData());
                     result.add(file);
                 }
@@ -69,44 +69,11 @@ class Memory {
 
 
     /**
-     * Check if a file matches a filter
-     *
-     * @param   file        file
-     * @param   filter      filter
-     *
-     * @return  true if the file matches the filter; false otherwise
-     */
-    private static boolean isFileMatchingFilter(KademliaFile file, KademliaFileData filter) {
-        KademliaFileData fileData = file.getData();
-
-        if (filter.getTitle() != null && !filter.getTitle().equals(fileData.getTitle()))
-            return false;
-
-        if (filter.getAuthor() != null && !filter.getAuthor().equals(fileData.getAuthor()))
-            return false;
-
-        if (filter.getUniversity() != null && !filter.getUniversity().equals(fileData.getUniversity()))
-            return false;
-
-        if (filter.getDepartment() != null && !filter.getDepartment().equals(fileData.getDepartment()))
-            return false;
-
-        if (filter.getCourse() != null && !filter.getCourse().equals(fileData.getCourse()))
-            return false;
-
-        if (filter.getTeacher() != null && !filter.getTeacher().equals(fileData.getTeacher()))
-            return false;
-
-        return true;
-    }
-
-
-    /**
      * Store data only and set expiration
      *
      * @param   data    data to be stored
      */
-    public void store(KademliaFile data) {
+    public void store(F data) {
         final int EXPIRATION = 60 * 60 * 1000;
 
         // Check if the key already exists
@@ -144,7 +111,7 @@ class Memory {
      * @param   data    data to be stored
      * @param   k       the number of the nodes the information has to be stored on (same value of bucket size)
      */
-    public void store(KademliaFile data, int k) {
+    public void store(F data, int k) {
         memory.put(data.getKey(), data);
         log("Key " + data.getKey() + " stored");
         publishKey(data, k);
@@ -157,7 +124,7 @@ class Memory {
      * @param   data    data to be stored
      * @param   k       the number of the nodes the information has to be stored on (same value of bucket size)
      */
-    private void publishKey(KademliaFile data, int k) {
+    private void publishKey(F data, int k) {
         final int REPUBLISH = 60 * 60 * 1000;
 
         Timer timer = new Timer(true);
@@ -173,7 +140,7 @@ class Memory {
                     nearestNodes.forEach(node -> {
                         StoreMessage message = new StoreMessage(parentNode.getInfo(), node, data);
 
-                        parentNode.getDispatcher().sendMessage(message, new MessageListener() {
+                        parentNode.sendMessage(message, new MessageListener() {
                             @Override
                             public void onSuccess(Message response) {
                                 parentNode.getRoutingTable().addNode(response.getSource());
@@ -222,7 +189,6 @@ class Memory {
      */
     public void deleteAll() {
         Collection<NodeId> ownedFiles = new ArrayList<>(republishTimers.keySet());
-        Iterator<NodeId> iterator = ownedFiles.iterator();
         ownedFiles.forEach(this::delete);
     }
 

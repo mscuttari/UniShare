@@ -1,8 +1,7 @@
-package it.unishare.common.connection.kademlia;
+package it.unishare.common.kademlia;
 
 import com.google.common.util.concurrent.MoreExecutors;
 import it.unishare.common.exceptions.NodeNotConnectedException;
-import it.unishare.common.models.Review;
 import it.unishare.common.utils.ListUtils;
 import it.unishare.common.utils.LogUtils;
 import it.unishare.common.utils.Pair;
@@ -14,7 +13,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class KademliaNode {
+public abstract class KademliaNode<F extends KademliaFile<FD>, FD extends KademliaFileData> {
 
     // Connection
     private DatagramSocket messagesServerSocket;
@@ -32,7 +31,7 @@ public class KademliaNode {
     private NND info;
     private Dispatcher dispatcher;
     private RoutingTable routingTable;
-    private Memory memory;
+    private Memory<F, FD> memory;
 
     // Files
     private FilesProvider fileProvider;
@@ -48,6 +47,8 @@ public class KademliaNode {
 
     /**
      * Constructor
+     *
+     * @param   fileProvider        files and reviews provider
      */
     public KademliaNode(FilesProvider fileProvider) {
         this.fileProvider = fileProvider;
@@ -115,7 +116,7 @@ public class KademliaNode {
      *
      * @return  message dispatcher
      */
-    Dispatcher getDispatcher() {
+    private Dispatcher getDispatcher() {
         if (dispatcher == null) {
             try {
                 dispatcher = new Dispatcher();
@@ -165,9 +166,9 @@ public class KademliaNode {
      *
      * @return  memory
      */
-    private Memory getMemory() {
+    private Memory<F, FD> getMemory() {
         if (memory == null) {
-            memory = new Memory(this);
+            memory = new Memory<>(this);
         }
 
         return memory;
@@ -179,7 +180,7 @@ public class KademliaNode {
      *
      * @return  file provider
      */
-    FilesProvider getFileProvider() {
+    protected FilesProvider getFileProvider() {
         return fileProvider;
     }
 
@@ -234,7 +235,7 @@ public class KademliaNode {
 
 
     /**
-     * Reset managers
+     * Reset servers
      */
     private void resetConnection() {
         executorService.shutdownNow();
@@ -319,62 +320,83 @@ public class KademliaNode {
 
 
     /**
+     * Send message
+     *
+     * @param   message         message to be sent
+     */
+    protected void sendMessage(Message message) {
+        sendMessage(message, null);
+    }
+
+
+    /**
+     * Send message
+     *
+     * @param   message         message to be sent
+     * @param   listener        response listener
+     */
+    protected void sendMessage(Message message, MessageListener listener) {
+        getDispatcher().sendMessage(message, listener);
+    }
+
+
+    /**
      * Analyze received message and send a response message
+     *
+     * The message is passed to {@link #onMessageReceived(Message)} if it's not
+     * a {@link PingMessage}, a {@link FindNodeMessage}, a {@link FindDataMessage}
+     * or a {@link StoreMessage}.
      *
      * @param   message     received message
      */
     private void elaborateMessage(Message message) {
         getRoutingTable().addNode(message.getSource());
 
-        // PING
         if (message instanceof PingMessage) {
+            // PING
             log("Ping request received from " + message.getSource().getId());
             PingMessage response = ((PingMessage) message).createResponse();
-            getDispatcher().sendMessage(response);
+            sendMessage(response);
             log("Ping response sent to " + response.getDestination().getId());
-        }
 
-        // FIND_NODE
-        if (message instanceof FindNodeMessage) {
+        } else if (message instanceof FindNodeMessage) {
+            // FIND_NODE
             NodeId targetId = ((FindNodeMessage) message).getTargetId();
             log("Lookup request received from " + message.getSource().getId() + " for " + targetId);
             FindNodeMessage response = ((FindNodeMessage) message).createResponse();
             response.setNearestNodes(getRoutingTable().getNearestNodes(targetId, BUCKET_SIZE));
-            getDispatcher().sendMessage(response);
-        }
+            sendMessage(response);
 
-        // STORE
-        if (message instanceof StoreMessage) {
-            KademliaFile data = ((StoreMessage) message).getData();
+        } else if (message instanceof StoreMessage) {
+            // STORE
+            @SuppressWarnings("unchecked") StoreMessage<F, FD> storeMessage = (StoreMessage<F, FD>) message;
+            F data = storeMessage.getData();
             log("Store request received from " + message.getSource().getId() + " for " + data.getKey());
             getMemory().store(data);
             StoreMessage response = ((StoreMessage) message).createResponse();
-            getDispatcher().sendMessage(response);
-        }
+            sendMessage(response);
 
-        // FIND_DATA
-        if (message instanceof FindDataMessage) {
-            KademliaFileData filter = ((FindDataMessage) message).getFilter();
+        } else if (message instanceof FindDataMessage) {
+            // FIND_DATA
+            @SuppressWarnings("unchecked") FindDataMessage<F, FD> findDataMessage = (FindDataMessage<F, FD>) message;
+            FD filter = findDataMessage.getFilter();
             log("Search request received from " + message.getSource().getId() + " for " + filter);
-            FindDataMessage response = ((FindDataMessage) message).createResponse(getMemory().getFiles(filter));
-            getDispatcher().sendMessage(response);
-        }
+            FindDataMessage<F, FD> response = findDataMessage.createResponse(getMemory().getFiles(filter));
+            sendMessage(response);
 
-        // REVIEW
-        if (message instanceof ReviewMessage) {
-            log("Review message received from " + message.getSource().getId() + " for " + ((ReviewMessage) message).getFile().getKey());
-            ReviewMessage response = ((ReviewMessage) message).createResponse();
-
-            if (response.getType() == ReviewMessage.ReviewMessageType.GET) {
-                response.setReviews(fileProvider.getReviews(response.getFile(), response.getPage()));
-
-            } else if (response.getType() == ReviewMessage.ReviewMessageType.SET) {
-                fileProvider.saveReview(response.getFile(), response.getReview());
-            }
-
-            getDispatcher().sendMessage(response);
+        } else {
+            onMessageReceived(message);
         }
     }
+
+
+    /**
+     * Called when a non-basic message is received.
+     * This way, custom messages can be defined and managed to an higher application level.
+     *
+     * @param   message     received message
+     */
+    protected abstract void onMessageReceived(Message message);
 
 
     /**
@@ -394,7 +416,7 @@ public class KademliaNode {
         if (!getInfo().equals(bootstrapNode)) {
             PingMessage message = new PingMessage(getInfo(), bootstrapNode);
 
-            getDispatcher().sendMessage(message, new MessageListener() {
+            sendMessage(message, new MessageListener() {
                 @Override
                 public void onSuccess(Message response) {
                     log("Ping response received from " + response.getSource().getId());
@@ -416,7 +438,7 @@ public class KademliaNode {
      *
      * @param   node    node to be pinged
      */
-    void ping(NND node) {
+    protected void ping(NND node) {
         ping(node, new MessageListener() {
             @Override
             public void onSuccess(Message response) {
@@ -433,10 +455,16 @@ public class KademliaNode {
     }
 
 
+    /**
+     * Ping node
+     *
+     * @param   node        node to be pinged
+     * @param   listener    response listener
+     */
     private void ping(NND node, MessageListener listener) {
         log("Pinging " + node.getId());
         PingMessage message = new PingMessage(getInfo(), node);
-        getDispatcher().sendMessage(message, listener);
+        sendMessage(message, listener);
     }
 
 
@@ -507,7 +535,7 @@ public class KademliaNode {
         nearestNodes.forEach(node -> {
             FindNodeMessage message = new FindNodeMessage(getInfo(), node, targetId);
 
-            getDispatcher().sendMessage(message, new MessageListener() {
+            sendMessage(message, new MessageListener() {
                 @Override
                 public void onSuccess(Message response) {
                     // Add the node to the queried ones
@@ -554,7 +582,7 @@ public class KademliaNode {
 
             FindNodeMessage message = new FindNodeMessage(getInfo(), recipient, targetId);
 
-            getDispatcher().sendMessage(message, new MessageListener() {
+            sendMessage(message, new MessageListener() {
                 @Override
                 public void onSuccess(Message response) {
                     if (queriedNodes.contains(recipient))
@@ -641,7 +669,7 @@ public class KademliaNode {
      *
      * @param   file        file to be stored
      */
-    public void storeFile(KademliaFile file) {
+    public void storeFile(F file) {
         getMemory().store(file, BUCKET_SIZE);
     }
 
@@ -651,18 +679,7 @@ public class KademliaNode {
      *
      * @param   files       files to be stored
      */
-    public void storeFiles(KademliaFile... files) {
-        for (KademliaFile file : files)
-            storeFile(file);
-    }
-
-
-    /**
-     * Store files in this node and publish them on the network
-     *
-     * @param   files       files to be stored
-     */
-    public void storeFiles(Collection<KademliaFile> files) {
+    public void storeFiles(Collection<F> files) {
         files.forEach(this::storeFile);
     }
 
@@ -691,22 +708,24 @@ public class KademliaNode {
      * @param   filter      search filters
      * @throws  NodeNotConnectedException   if the node is not connected to the network
      */
-    public void searchData(KademliaFileData filter, SearchListener listener) throws NodeNotConnectedException {
+    public void searchData(FD filter, SearchListener<F, FD> listener) throws NodeNotConnectedException {
         if (!isConnected())
             throw new NodeNotConnectedException();
 
-        Collection<KademliaFile> files = new HashSet<>();
-        Collection<KademliaFile> unmodifiableFilesList = Collections.unmodifiableCollection(files);
+        Collection<F> files = new HashSet<>();
+        Collection<F> unmodifiableFilesList = Collections.unmodifiableCollection(files);
         List<NND> knownNodes = getRoutingTable().getAllNodes();
 
         knownNodes.forEach(node -> {
-            FindDataMessage message = new FindDataMessage(getInfo(), node, filter);
+            FindDataMessage<F, FD> message = new FindDataMessage<>(getInfo(), node, filter);
 
-            getDispatcher().sendMessage(message, new MessageListener() {
+            sendMessage(message, new MessageListener() {
                 @Override
                 public void onSuccess(Message response) {
                     if (response instanceof FindDataMessage) {
-                        for (KademliaFile file : ((FindDataMessage) response).getFiles()) {
+                        @SuppressWarnings("unchecked") FindDataMessage<F, FD> findDataResponse = (FindDataMessage<F, FD>) response;
+
+                        for (F file : findDataResponse.getFiles()) {
                             if ((file.getOwner().equals(getInfo())))
                                 continue;
 
@@ -751,48 +770,11 @@ public class KademliaNode {
 
 
     /**
-     * Get file reviews
-     *
-     * @param   file    file
-     * @param   page    reviews page number
-     */
-    public void getFileReviews(KademliaFile file, int page, ReviewsListener listener) {
-        ReviewMessage message = new ReviewMessage(getInfo(), file.getOwner(), file, page);
-        getDispatcher().sendMessage(message, new MessageListener() {
-            @Override
-            public void onSuccess(Message response) {
-                if (listener != null && response instanceof ReviewMessage) {
-                    listener.onResponse(((ReviewMessage) response).getPage(), ((ReviewMessage) response).getReviews());
-                }
-            }
-
-            @Override
-            public void onFailure() {
-                ping(message.getDestination());
-            }
-        });
-    }
-
-
-    /**
-     * Send review
-     *
-     * @param   file        file
-     * @param   review      review
-     */
-    public void sendReview(KademliaFile file, Review review) {
-        log("Sending review for file " + file.getKey());
-        ReviewMessage message = new ReviewMessage(getInfo(), file.getOwner(), file, review);
-        getDispatcher().sendMessage(message);
-    }
-
-
-    /**
      * Log message
      *
      * @param   message     message to be logged
      */
-    void log(String message) {
+    protected void log(String message) {
         LogUtils.d("Node [" + getInfo().getId() + ", " + getInfo().getAddress() + ":" + getInfo().getPort() + "]", message);
     }
 

@@ -1,15 +1,15 @@
-package it.unishare.common.connection.kademlia;
+package it.unishare.common.kademlia;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 
-final class FindDataMessage extends Message {
+final class FindDataMessage<F extends KademliaFile<FD>, FD extends KademliaFileData> extends Message {
 
     private static final long serialVersionUID = -1161228654580574231L;
 
-    private KademliaFileData filter;
-    private Collection<KademliaFile> files = new HashSet<>();
+    private FD filter;
+    private Collection<F> files = new HashSet<>();
 
 
     /**
@@ -18,7 +18,7 @@ final class FindDataMessage extends Message {
      * @param   source          source node
      * @param   destination     destination node
      */
-    public FindDataMessage(NND source, NND destination, KademliaFileData filter) {
+    public FindDataMessage(NND source, NND destination, FD filter) {
         super(source, destination);
 
         this.filter = filter;
@@ -30,8 +30,8 @@ final class FindDataMessage extends Message {
      *
      * @return  response message
      */
-    public FindDataMessage createResponse(Collection<KademliaFile> files) {
-        FindDataMessage response = new FindDataMessage(getDestination(), getSource(), filter);
+    public FindDataMessage<F, FD> createResponse(Collection<F> files) {
+        FindDataMessage<F, FD> response = new FindDataMessage<>(getDestination(), getSource(), filter);
         response.setId(getId());
 
         if (files != null) {
@@ -48,7 +48,7 @@ final class FindDataMessage extends Message {
      *
      * @return  search filter
      */
-    public KademliaFileData getFilter() {
+    public FD getFilter() {
         return filter;
     }
 
@@ -58,7 +58,7 @@ final class FindDataMessage extends Message {
      *
      * @return  response files
      */
-    public Collection<KademliaFile> getFiles() {
+    public Collection<F> getFiles() {
         return Collections.unmodifiableCollection(files);
     }
 

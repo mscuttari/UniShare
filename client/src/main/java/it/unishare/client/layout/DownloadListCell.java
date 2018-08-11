@@ -1,7 +1,7 @@
 package it.unishare.client.layout;
 
 import it.unishare.client.controllers.DownloadListCellController;
-import it.unishare.common.connection.kademlia.KademliaFile;
+import it.unishare.common.kademlia.KademliaFile;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.ListCell;
