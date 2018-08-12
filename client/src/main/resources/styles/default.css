@@ -330,3 +330,29 @@
     -fx-background-color: #e6e6e6;
     -fx-border-color: grey;
 }
+
+/* Rating */
+
+.rating {
+    button-width: 25px;
+    button-height: 25px;
+}
+
+.rating > .container {
+    -fx-spacing: 0;
+}
+
+.rating > .container > .button {
+    -fx-min-width: button-width;
+    -fx-max-width: button-width;
+    -fx-min-height: button-height;
+    -fx-max-height: button-height;
+    -fx-background-image: null;
+    -fx-shape: "M 160.000 180.000 L 183.511 192.361 L 179.021 166.180 L 198.042 147.639 L 171.756 143.820 L 160.000 120.000 L 148.244 143.820 L 121.958 147.639 L 140.979 166.180 L 136.489 192.361 L 160.000 180.000";
+    -fx-background-color: #d7d7d7;
+    -fx-border-color: #a6a6a6;
+}
+
+.rating > .container > .button.strong {
+    -fx-background-color: #ffe41c;
+}

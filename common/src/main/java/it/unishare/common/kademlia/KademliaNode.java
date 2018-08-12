@@ -34,7 +34,7 @@ public abstract class KademliaNode<F extends KademliaFile<FD>, FD extends Kademl
     private Memory<F, FD> memory;
 
     // Files
-    private FilesProvider fileProvider;
+    private FilesProvider filesProvider;
 
 
     /**
@@ -51,7 +51,7 @@ public abstract class KademliaNode<F extends KademliaFile<FD>, FD extends Kademl
      * @param   fileProvider        files and reviews provider
      */
     public KademliaNode(FilesProvider fileProvider) {
-        this.fileProvider = fileProvider;
+        this.filesProvider = fileProvider;
 
         this.executorService = Executors.newCachedThreadPool(r -> {
             Thread thread = new Thread(r);
@@ -176,22 +176,22 @@ public abstract class KademliaNode<F extends KademliaFile<FD>, FD extends Kademl
 
 
     /**
-     * Get file provider
+     * Get files provider
      *
-     * @return  file provider
+     * @return  files provider
      */
-    protected FilesProvider getFileProvider() {
-        return fileProvider;
+    protected FilesProvider getFilesProvider() {
+        return filesProvider;
     }
 
 
     /**
-     * Set file provider
+     * Set files provider
      *
-     * @param   fileProvider    file provider
+     * @param   filesProvider   files provider
      */
-    public void setFileProvider(FilesProvider fileProvider) {
-        this.fileProvider = fileProvider;
+    public void setFilesProvider(FilesProvider filesProvider) {
+        this.filesProvider = filesProvider;
     }
 
 
@@ -293,7 +293,7 @@ public abstract class KademliaNode<F extends KademliaFile<FD>, FD extends Kademl
                         }
                     }
 
-                } catch (IOException | ClassNotFoundException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -308,8 +308,14 @@ public abstract class KademliaNode<F extends KademliaFile<FD>, FD extends Kademl
 
                 // noinspection InfiniteLoopStatement
                 while (true) {
-                    Socket socket = fileServerSocket.accept();
-                    uploadExecutorService.submit(new Uploader(KademliaNode.this, socket));
+                    try {
+                        Socket socket = fileServerSocket.accept();
+                        uploadExecutorService.submit(new Uploader(KademliaNode.this, socket));
+                    } catch (Exception e) {
+                        // Recreate the socket
+                        fileServerSocket = new ServerSocket(getMessagesServerSocket().getLocalPort());
+                        e.printStackTrace();
+                    }
                 }
 
             } catch (IOException e) {

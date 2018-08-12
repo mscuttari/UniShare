@@ -74,11 +74,16 @@
 
                 </VBox>
 
-                <VBox styleClass="box-section" spacing="10">
+                <VBox styleClass="box-section"
+                      maxHeight="1.7976931348623157E308"
+                      VBox.vgrow="ALWAYS"
+                      spacing="10">
+
                     <Label styleClass="title" text="%shared_files" />
 
                     <TableView fx:id="tableFiles"
-                               maxHeight="1.7976931348623157E308">
+                               maxHeight="1.7976931348623157E308"
+                               VBox.vgrow="ALWAYS">
 
                         <columns>
                             <TableColumn fx:id="columnTitle"        text="%title"/>

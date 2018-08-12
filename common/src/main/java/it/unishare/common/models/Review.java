@@ -6,17 +6,9 @@ public class Review implements Serializable {
 
     private static final long serialVersionUID = -1239175990964059541L;
 
-    private Integer rating;
+    private int rating;
     private String author;
     private String body;
-
-
-    /**
-     * Default constructor
-     */
-    public Review() {
-        this(null, null, null);
-    }
 
 
     /**
@@ -26,7 +18,7 @@ public class Review implements Serializable {
      * @param   rating          rating
      * @param   body            body
      */
-    public Review(String author, Integer rating, String body) {
+    public Review(String author, int rating, String body) {
         this.rating = rating;
         this.author = author;
         this.body = body;
@@ -80,7 +72,7 @@ public class Review implements Serializable {
      *
      * @return  rating
      */
-    public Integer getRating() {
+    public int getRating() {
         return rating;
     }
 

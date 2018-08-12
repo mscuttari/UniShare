@@ -1,5 +1,6 @@
 package it.unishare.client.controllers;
 
+import it.unishare.client.layout.ConfirmationDialogListener;
 import it.unishare.common.connection.dht.NoteFile;
 import it.unishare.client.layout.Download;
 import it.unishare.client.layout.Download.DownloadStatus;
@@ -91,7 +92,11 @@ public class DownloadListCellController extends AbstractController {
      */
     @FXML
     private void remove() {
-        DownloadManager.getInstance().delete(download);
+        showConfirmationDialog(resources.getString("attention"), resources.getString("are_you_sure"), result -> {
+            if (result) {
+                DownloadManager.getInstance().delete(download);
+            }
+        });
     }
 
 

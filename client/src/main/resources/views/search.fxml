@@ -74,11 +74,16 @@
                 </VBox>
 
                 <!-- Search results -->
-                <VBox styleClass="box-section" spacing="10">
+                <VBox styleClass="box-section"
+                      maxHeight="1.7976931348623157E308"
+                      VBox.vgrow="ALWAYS"
+                      spacing="10">
+
                     <Label styleClass="title" text="%search_results" />
 
                     <TableView fx:id="tableFiles"
-                               maxHeight="1.7976931348623157E308">
+                               maxHeight="1.7976931348623157E308"
+                               VBox.vgrow="ALWAYS">
 
                         <columns>
                             <TableColumn fx:id="columnTitle"        text="%title"/>
@@ -98,7 +103,6 @@
             <!-- Reviews -->
             <AnchorPane styleClass="reviews-page">
 
-
                     <VBox AnchorPane.topAnchor="0.0"
                           AnchorPane.bottomAnchor="0.0"
                           AnchorPane.leftAnchor="0.0"
@@ -107,7 +111,9 @@
 
                         <!-- My review -->
                         <VBox fx:id="boxMyReview"
-                              styleClass="box-section">
+                              styleClass="box-section"
+                              maxHeight="1.7976931348623157E308"
+                              VBox.vgrow="ALWAYS">
 
                             <Label styleClass="title" text="%my_review"/>
 
@@ -115,7 +121,8 @@
                                 <Rating fx:id="ratingReview" styleClass="button-transparent" />
 
                                 <LimitedTextArea fx:id="txtReviewBody"
-                                                 maxLength="500" />
+                                                 maxLength="500"
+                                                 wrapText="true" />
 
                                 <HBox>
                                     <Button styleClass="button-left"
@@ -149,7 +156,7 @@
                                 <ListView fx:id="lvReviews"
                                           styleClass="lv-reviews"
                                           maxHeight="1.7976931348623157E308"
-                                          VBox.vgrow="ALWAYS" />
+                                          VBox.vgrow="ALWAYS"  />
 
                                 <Button maxWidth="1.7976931348623157E308"
                                         HBox.hgrow="ALWAYS"

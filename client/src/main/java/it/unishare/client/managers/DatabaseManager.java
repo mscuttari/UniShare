@@ -7,6 +7,7 @@ import it.unishare.client.utils.Settings;
 import it.unishare.common.kademlia.KademliaFile;
 import it.unishare.common.models.Review;
 import it.unishare.common.models.User;
+import it.unishare.common.utils.LogUtils;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -17,12 +18,15 @@ import java.util.List;
 
 public class DatabaseManager {
 
+    // Debug
+    private static final String TAG = "DatabaseManager";
+
     // Singleton instance
     private static DatabaseManager instance;
 
 
     /**
-     * Private constructor (for Singleton)
+     * Private constructor (for singleton)
      */
     private DatabaseManager() {
 
@@ -125,6 +129,7 @@ public class DatabaseManager {
                 statement.execute(SQL);
 
             connection.close();
+            LogUtils.d(TAG, "Database created");
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -184,6 +189,8 @@ public class DatabaseManager {
      * @param   file    file
      */
     public void addSharedFiles(User user, NoteFile file) {
+        LogUtils.d(TAG, "Adding shared file " + file);
+
         String sql = "INSERT INTO shared_files(user_id, key, title, university, department, course, teacher) VALUES(?, ?, ?, ?, ?, ?, ?)";
 
         try {
@@ -200,6 +207,9 @@ public class DatabaseManager {
 
             statement.executeUpdate();
             connection.close();
+
+            LogUtils.d(TAG, "Shared file " + file + " added");
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -209,20 +219,26 @@ public class DatabaseManager {
     /**
      * Delete shared file
      *
-     * @param   key     key
+     * @param   user    user
+     * @param   file    file
      */
-    public void deleteSharedFile(long userId, byte[] key) {
+    public void deleteSharedFile(User user, NoteFile file) {
+        LogUtils.d(TAG, "Deleting shared file " + file);
+
         String sql = "DELETE FROM shared_files WHERE user_id = ? AND key = ?";
 
         try {
             Connection connection = getConnection();
 
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setLong(1, userId);
-            statement.setBytes(2, key);
+            statement.setLong(1, user.getId());
+            statement.setBytes(2, file.getKey().getBytes());
 
             statement.executeUpdate();
             connection.close();
+
+            LogUtils.d(TAG, "Shared file " + file + " deleted");
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -330,7 +346,10 @@ public class DatabaseManager {
      * @param   download    download
      */
     public void addDownloadedFile(User user, Download download) {
+        LogUtils.d(TAG, "Adding downloaded file " + download.getFile());
+
         String sql = "INSERT INTO downloaded_files(user_id, key, title, university, department, course, teacher, author, path) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
         NoteFile file = download.getFile();
         File path = download.getPath();
 
@@ -350,6 +369,8 @@ public class DatabaseManager {
 
             statement.executeUpdate();
             connection.close();
+
+            LogUtils.d(TAG, "Dwonloaded file " + file + " added");
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -364,7 +385,10 @@ public class DatabaseManager {
      * @param   download    download
      */
     public void deleteDownloadedFile(User user, Download download) {
+        LogUtils.d(TAG, "Deleting downloaded file " + download.getFile());
+
         String sql = "DELETE FROM downloaded_files WHERE user_id = ? AND key = ? AND title = ? AND university = ? AND department = ? AND course = ? AND teacher = ? AND author = ? AND path = ?";
+
         NoteFile file = download.getFile();
         File path = download.getPath();
 
@@ -384,6 +408,8 @@ public class DatabaseManager {
 
             statement.executeUpdate();
             connection.close();
+
+            LogUtils.d(TAG, "Downloaded file " + file + " deleted");
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -398,7 +424,10 @@ public class DatabaseManager {
      * @param   download    download
      */
     public void hideDownloadedFile(User user, Download download) {
+        LogUtils.d(TAG, "Hiding downloaded file " + download.getFile());
+
         String sql = "UPDATE downloaded_files SET show = 0 WHERE user_id = ? AND key = ? AND title = ? AND university = ? AND department = ? AND course = ? AND teacher = ? AND author = ? AND path = ?";
+
         NoteFile file = download.getFile();
         File path = download.getPath();
 
@@ -418,6 +447,8 @@ public class DatabaseManager {
 
             statement.executeUpdate();
             connection.close();
+
+            LogUtils.d(TAG, "Downloaded file " + file + " hidden");
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -498,6 +529,8 @@ public class DatabaseManager {
      * @param   review      review
      */
     private void addReview(User user, KademliaFile file, Review review) {
+        LogUtils.d(TAG, "Adding review " + review);
+
         String sql = "INSERT INTO reviews(user_id, file_key, author, rating, body) VALUES(?, ?, ?, ?, ?)";
 
         try {
@@ -512,6 +545,9 @@ public class DatabaseManager {
 
             statement.executeUpdate();
             connection.close();
+
+            LogUtils.d(TAG, "Review " + review + " added");
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -526,7 +562,9 @@ public class DatabaseManager {
      * @param   review      review
      */
     private void updateReview(User user, KademliaFile file, Review review) {
-        String sql = "UPDATE revews SET rating = ? AND body = ? WHERE user_id = ? AND file_key = ? AND author = ?";
+        LogUtils.d(TAG, "Updating review " + review);
+
+        String sql = "UPDATE reviews SET rating = ?, body = ? WHERE user_id = ? AND file_key = ? AND author = ?";
 
         try {
             Connection connection = getConnection();
@@ -540,6 +578,8 @@ public class DatabaseManager {
 
             statement.executeUpdate();
             connection.close();
+
+            LogUtils.d(TAG, "Review " + review + " updated");
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -555,6 +595,8 @@ public class DatabaseManager {
      * @param   review      review
      */
     private void deleteReview(User user, KademliaFile file, Review review) {
+        LogUtils.d(TAG, "Deleting review " + review);
+
         String sql = "DELETE FROM reviews WHERE user_id = ? AND file_key = ? AND author = ?";
 
         try {
@@ -568,10 +610,11 @@ public class DatabaseManager {
             statement.executeUpdate();
             connection.close();
 
+            LogUtils.d(TAG, "Review " + review + " deleted");
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-
 
 }

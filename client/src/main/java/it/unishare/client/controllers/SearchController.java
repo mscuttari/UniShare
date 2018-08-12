@@ -1,15 +1,13 @@
 package it.unishare.client.controllers;
 
+import it.unishare.client.layout.*;
 import it.unishare.common.connection.dht.NoteFile;
 import it.unishare.common.connection.dht.NoteMetadata;
+import it.unishare.common.connection.dht.ReviewsListener;
 import it.unishare.common.connection.dht.UniShareNode;
-import it.unishare.client.layout.Download;
-import it.unishare.client.layout.ReviewListCell;
 import it.unishare.client.managers.ConnectionManager;
 import it.unishare.client.managers.DatabaseManager;
 import it.unishare.client.managers.DownloadManager;
-import it.unishare.client.layout.GuiFile;
-import it.unishare.client.layout.MultipleIconButtonTableCell;
 import it.unishare.client.utils.FileUtils;
 import it.unishare.client.utils.GUIUtils;
 import it.unishare.common.kademlia.KademliaFile;
@@ -63,7 +61,8 @@ public class SearchController extends AbstractController implements Initializabl
 
     // Reviews
     private NoteFile reviewsCurrentFile;
-    private int currentReviewsPage;
+    private int reviewsCurrentPage;
+
     @FXML private VBox boxMyReview;
     @FXML private Rating ratingReview;
     @FXML private TextArea txtReviewBody;
@@ -77,6 +76,9 @@ public class SearchController extends AbstractController implements Initializabl
     public void initialize(URL location, ResourceBundle resources) {
         // Resources
         this.resources = resources;
+
+        // Disable the center page when the reviews are shown
+        hiddenSidesPane.getContent().disableProperty().bind(hiddenSidesPane.getRight().visibleProperty());
 
         // Share new file
         List<String> universities = FileUtils.readFileLines(getClass().getResourceAsStream("/values/universities.txt"));
@@ -221,7 +223,7 @@ public class SearchController extends AbstractController implements Initializabl
      * @param   file    file
      */
     private void showFileReviews(NoteFile file) {
-        currentReviewsPage = 1;
+        reviewsCurrentPage = 1;
         boxMyReview.setVisible(isFileDownloaded(file));
 
         hiddenSidesPane.setPinnedSide(Side.RIGHT);
@@ -238,18 +240,30 @@ public class SearchController extends AbstractController implements Initializabl
         reviewsCurrentFile = file;
         UniShareNode node = ConnectionManager.getInstance().getNode();
 
-        node.getFileReviews(file, currentReviewsPage, (page, reviews) -> {
-            User user = ConnectionManager.getInstance().getUser();
+        node.getFileReviews(file, reviewsCurrentPage, new ReviewsListener() {
+            @Override
+            public void onResponse(int page, List<Review> reviews) {
+                User user = ConnectionManager.getInstance().getUser();
 
-            for (Review review : reviews) {
-                if (review.getAuthor().equals(user.getFullName())) {
-                    ratingReview.setRating(review.getRating());
-                    txtReviewBody.setText(review.getBody());
-                    break;
+                for (Review review : reviews) {
+                    if (review.getAuthor().equals(user.getFullName())) {
+                        ratingReview.setRating(review.getRating());
+                        txtReviewBody.setText(review.getBody());
+                        break;
+                    }
+                }
+
+                if (reviewsCurrentPage == 1) {
+                    lvReviews.setItems(FXCollections.observableList(reviews));
+                } else {
+                    lvReviews.getItems().addAll(reviews);
                 }
             }
 
-            lvReviews.setItems(FXCollections.observableList(reviews));
+            @Override
+            public void onFailure() {
+                showErrorDialog(resources.getString("error"), resources.getString("connection_error"));
+            }
         });
     }
 
@@ -287,19 +301,31 @@ public class SearchController extends AbstractController implements Initializabl
      */
     @FXML
     private void saveReview() {
+        if (reviewsCurrentFile == null)
+            return;
+
         User user = ConnectionManager.getInstance().getUser();
+        UniShareNode node = ConnectionManager.getInstance().getNode();
 
         int rating = (int) ratingReview.getRating();
         String author = user.getFullName();
         String body = txtReviewBody.getText().trim();
         body = body.isEmpty() ? null : body;
-
         Review review = new Review(author, rating, body);
 
-        UniShareNode node = ConnectionManager.getInstance().getNode();
+        node.sendReview(reviewsCurrentFile, review, new ReviewsListener() {
+            @Override
+            public void onResponse(int page, List<Review> reviews) {
+                reviewsCurrentPage = page;
+                lvReviews.setItems(FXCollections.observableList(reviews));
+                showInformationDialog(resources.getString("information"), resources.getString("review_saved"));
+            }
 
-        if (reviewsCurrentFile != null)
-            node.sendReview(reviewsCurrentFile, review);
+            @Override
+            public void onFailure() {
+                showErrorDialog(resources.getString("error"), resources.getString("connection_error"));
+            }
+        });
     }
 
 
@@ -308,18 +334,32 @@ public class SearchController extends AbstractController implements Initializabl
      */
     @FXML
     private void deleteReview() {
-        User user = ConnectionManager.getInstance().getUser();
+        if (reviewsCurrentFile == null)
+            return;
 
-        int rating = (int) ratingReview.getRating();
-        String author = user.getFullName();
-        Review review = new Review(author, rating, null);
+        showConfirmationDialog(resources.getString("attention"), resources.getString("are_you_sure"), result -> {
+            User user = ConnectionManager.getInstance().getUser();
+            UniShareNode node = ConnectionManager.getInstance().getNode();
 
-        UniShareNode node = ConnectionManager.getInstance().getNode();
+            int rating = (int) ratingReview.getRating();
+            String author = user.getFullName();
+            Review review = new Review(author, rating, null);
 
-        if (reviewsCurrentFile != null)
-            node.sendReview(reviewsCurrentFile, review);
+            node.sendReview(reviewsCurrentFile, review, new ReviewsListener() {
+                @Override
+                public void onResponse(int page, List<Review> reviews) {
+                    txtReviewBody.clear();
+                    reviewsCurrentPage = page;
+                    lvReviews.setItems(FXCollections.observableList(reviews));
+                    showInformationDialog(resources.getString("information"), resources.getString("review_deleted"));
+                }
 
-        txtReviewBody.clear();
+                @Override
+                public void onFailure() {
+                    showErrorDialog(resources.getString("error"), resources.getString("connection_error"));
+                }
+            });
+        });
     }
 
 
@@ -328,7 +368,9 @@ public class SearchController extends AbstractController implements Initializabl
      */
     @FXML
     private void loadMoreReviews() {
-        currentReviewsPage++;
+        if (lvReviews.getItems().size() >= 10 * reviewsCurrentPage)
+            reviewsCurrentPage++;
+
         loadFileReviews(reviewsCurrentFile);
     }
 

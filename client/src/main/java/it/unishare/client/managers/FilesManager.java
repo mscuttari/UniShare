@@ -12,16 +12,16 @@ import java.util.List;
 
 public class FilesManager implements FilesProvider {
 
-    private long userId;
+    private User user;
 
 
     /**
      * Constructor
      *
-     * @param   userId      user ID
+     * @param   user    user
      */
-    public FilesManager(long userId) {
-        this.userId = userId;
+    public FilesManager(User user) {
+        this.user = user;
     }
 
 
@@ -61,10 +61,8 @@ public class FilesManager implements FilesProvider {
     public void saveReview(KademliaFile file, Review review) {
         User user = ConnectionManager.getInstance().getUser();
 
-        if (user == null)
-            return;
-
-        DatabaseManager.getInstance().saveReview(user, file, review);
+        if (user != null)
+            DatabaseManager.getInstance().saveReview(user, file, review);
     }
 
 
@@ -75,7 +73,7 @@ public class FilesManager implements FilesProvider {
      * @return  file path
      */
     private String getFilePath(KademliaFile file) {
-        return getFilePath(userId, file);
+        return getFilePath(user.getId(), file);
     }
 
 

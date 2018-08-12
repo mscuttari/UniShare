@@ -1,6 +1,8 @@
 package it.unishare.client.controllers;
 
+import it.unishare.client.layout.ConfirmationDialogListener;
 import it.unishare.common.utils.LogUtils;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
@@ -44,27 +46,20 @@ public abstract class AbstractController implements Initializable {
     /**
      * Show confirmation dialog
      *
-     * @param   message     message
-     * @return  true for "Yes" answer; false for "No" answer
-     */
-    protected static boolean showConfirmationDialog(String message) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, message, ButtonType.YES, ButtonType.NO);
-        alert.setTitle("Attenzione");
-        alert.setHeaderText(null);
-
-        Optional<ButtonType> result = alert.showAndWait();
-
-        return result.isPresent() && result.get() == ButtonType.YES;
-    }
-
-
-    /**
-     * Show information dialog
-     *
+     * @param   title       title
      * @param   message     message
      */
-    protected static void showInformationDialog(String message) {
-        showInformationDialog("Informazioni", message);
+    protected static void showConfirmationDialog(String title, String message, ConfirmationDialogListener listener) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION, message, ButtonType.YES, ButtonType.NO);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+
+            Optional<ButtonType> result = alert.showAndWait();
+
+            if (listener != null)
+                listener.onResult(result.isPresent() && result.get() == ButtonType.YES);
+        });
     }
 
 
@@ -75,20 +70,12 @@ public abstract class AbstractController implements Initializable {
      * @param   message     message
      */
     protected static void showInformationDialog(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.showAndWait();
-    }
-
-
-    /**
-     * Show error dialog
-     *
-     * @param   message     message
-     */
-    protected static void showErrorDialog(String message) {
-        showErrorDialog("Errore", message);
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+            alert.showAndWait();
+        });
     }
 
 
@@ -99,10 +86,12 @@ public abstract class AbstractController implements Initializable {
      * @param   message     message
      */
     protected static void showErrorDialog(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR, message, ButtonType.OK);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.showAndWait();
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR, message, ButtonType.OK);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+            alert.showAndWait();
+        });
     }
 
 

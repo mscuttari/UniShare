@@ -13,14 +13,22 @@
 
     <stylesheets>
         <URL value="@../styles/default.css" />
-        <URL value="@../styles/search.css" />
+        <URL value="@../styles/review.css" />
     </stylesheets>
 
     <HBox>
-        <Rating fx:id="rating" />
-        <Label fx:id="lblAuthor" />
+        <HBox HBox.hgrow="ALWAYS">
+            <Rating fx:id="rating"
+                    disable="true" />
+        </HBox>
+
+        <Label fx:id="lblAuthor"
+               styleClass="lbl-author" />
     </HBox>
 
-    <Label fx:id="lblBody" />
+    <Label fx:id="lblBody"
+           styleClass="lbl-body"
+           textAlignment="JUSTIFY"
+           wrapText="true" />
 
 </VBox>

@@ -27,14 +27,22 @@ public final class UniShareNode extends KademliaNode<NoteFile, NoteMetadata> {
     protected void onMessageReceived(Message message) {
         if (message instanceof ReviewMessage) {
             // REVIEW
-            log("Review message received from " + message.getSource().getId() + " for " + ((ReviewMessage) message).getFile().getKey());
             ReviewMessage response = ((ReviewMessage) message).createResponse();
 
-            if (response.getType() == ReviewMessage.ReviewMessageType.GET) {
-                response.setReviews(getFileProvider().getReviews(response.getFile(), response.getPage()));
+            FilesProvider filesProvider = getFilesProvider();
+            if (filesProvider == null) return;
 
-            } else if (response.getType() == ReviewMessage.ReviewMessageType.SET) {
-                getFileProvider().saveReview(response.getFile(), response.getReview());
+            switch (response.getType()) {
+                case GET:
+                    log("Reviews list requested from " + message.getSource().getId() + " for " + ((ReviewMessage) message).getFile());
+                    response.setReviews(filesProvider.getReviews(response.getFile(), response.getPage()));
+                    break;
+
+                case SET:
+                    log("Saving review " + ((ReviewMessage) message).getReview() + " for file " + ((ReviewMessage) message).getFile());
+                    filesProvider.saveReview(response.getFile(), response.getReview());
+                    response.setReviews(filesProvider.getReviews(((ReviewMessage) message).getFile(), 1));
+                    break;
             }
 
             sendMessage(response);
@@ -61,7 +69,7 @@ public final class UniShareNode extends KademliaNode<NoteFile, NoteMetadata> {
 
             @Override
             public void onFailure() {
-                ping(message.getDestination());
+                listener.onFailure();
             }
         });
     }
@@ -73,10 +81,22 @@ public final class UniShareNode extends KademliaNode<NoteFile, NoteMetadata> {
      * @param   file        file
      * @param   review      review
      */
-    public void sendReview(NoteFile file, Review review) {
+    public void sendReview(NoteFile file, Review review, ReviewsListener listener) {
         log("Sending review for file " + file.getKey());
         ReviewMessage message = new ReviewMessage(getInfo(), file.getOwner(), file, review);
-        sendMessage(message);
+
+        sendMessage(message, new MessageListener() {
+            @Override
+            public void onSuccess(Message response) {
+                if (response instanceof ReviewMessage)
+                    listener.onResponse(1, ((ReviewMessage) response).getReviews());
+            }
+
+            @Override
+            public void onFailure() {
+                listener.onFailure();
+            }
+        });
     }
 
 }
