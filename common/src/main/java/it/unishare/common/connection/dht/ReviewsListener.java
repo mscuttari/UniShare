@@ -16,8 +16,14 @@ public interface ReviewsListener extends EventListener {
      * Called on the response of the file owner node
      *
      * @param   page        reviews page
-     * @param   reviews     reiews of that page
+     * @param   reviews     reviews of that page
      */
     void onResponse(int page, List<Review> reviews);
+
+
+    /**
+     * Called if the message could not be sent or if timeout has expired
+     */
+    void onFailure();
 
 }

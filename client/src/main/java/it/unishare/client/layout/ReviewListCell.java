@@ -39,6 +39,7 @@ public class ReviewListCell extends ListCell<Review> {
             setGraphic(null);
 
         } else {
+            controller.setWidth(getListView());
             controller.setReview(item);
             setGraphic(graphic);
         }

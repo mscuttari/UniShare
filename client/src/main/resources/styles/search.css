@@ -37,17 +37,3 @@
 .lv-reviews {
     -fx-min-width: 450;
 }
-
-/* Rating */
-
-.rating > .container .button {
-    -fx-pref-width: 20px;
-    -fx-pref-height: 20px;
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-}
-
-.rating > .container .button:hover {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-}

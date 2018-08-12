@@ -61,7 +61,7 @@ class Uploader implements Runnable {
         if (!uploader.getInfo().equals(file.getOwner()))
             return;
 
-        FilesProvider fileProvider = uploader.getFileProvider();
+        FilesProvider fileProvider = uploader.getFilesProvider();
         if (fileProvider == null)
             return;
 

@@ -17,6 +17,7 @@ import java.rmi.RemoteException;
 import java.util.Collection;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
 import java.util.prefs.Preferences;
 
 public class ConnectionManager {
@@ -42,14 +43,14 @@ public class ConnectionManager {
         logged.addListener((observable, oldValue, newValue) -> {
             if (newValue) {
                 // Logged in
-                node.setFileProvider(new FilesManager(user.getId()));
+                node.setFilesProvider(new FilesManager(user));
 
                 Collection<NoteFile> files = DatabaseManager.getInstance().getSharedFiles(user);
                 node.storeFiles(files);
 
             } else {
                 // Logged out
-                node.setFileProvider(null);
+                node.setFilesProvider(null);
                 node.deleteAllFiles();
             }
         });
@@ -116,12 +117,14 @@ public class ConnectionManager {
         String password = preferences.get("password", "");
 
         if (!email.isEmpty() && !password.isEmpty()) {
-            try {
-                login(email, password);
-            } catch (RemoteException | MissingFieldException | NotFoundException | WrongPasswordException e) {
-                preferences.remove("email");
-                preferences.remove("password");
-            }
+            CompletableFuture.runAsync(() -> {
+                try {
+                    login(email, password);
+                } catch (RemoteException | MissingFieldException | NotFoundException | WrongPasswordException e) {
+                    preferences.remove("email");
+                    preferences.remove("password");
+                }
+            });
         }
     }
 
@@ -221,19 +224,21 @@ public class ConnectionManager {
         // Connection retry period
         final int PERIOD = 30000;
 
-        try {
-            LogUtils.d(TAG, "Node bootstrap");
-            node.bootstrap(getServer().getKademliaInfo());
-        } catch (Exception e) {
-            LogUtils.e(TAG, "Node bootstrap failed. Retrying in " + (PERIOD / 1000) + "s");
+        CompletableFuture.runAsync(() -> {
+            try {
+                LogUtils.d(TAG, "Node bootstrap");
+                node.bootstrap(getServer().getKademliaInfo());
+            } catch (Exception e) {
+                LogUtils.e(TAG, "Node bootstrap failed. Retrying in " + (PERIOD / 1000) + "s");
 
-            new Timer(true).schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    nodeBootstrap();
-                }
-            }, PERIOD);
-        }
+                new Timer(true).schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        nodeBootstrap();
+                    }
+                }, PERIOD);
+            }
+        });
     }
 
 }

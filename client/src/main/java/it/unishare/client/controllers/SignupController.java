@@ -2,6 +2,7 @@ package it.unishare.client.controllers;
 
 import it.unishare.client.managers.ConnectionManager;
 import it.unishare.common.exceptions.*;
+import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -55,27 +56,29 @@ public class SignupController extends AbstractController {
         String firstName = txtFirstName.getText().trim();
         String lastName = txtLastName.getText().trim();
 
-        try {
-            ConnectionManager.getInstance().signup(email, password, firstName, lastName);
+        Platform.runLater(() -> {
+            try {
+                ConnectionManager.getInstance().signup(email, password, firstName, lastName);
 
-        } catch (RemoteException e) {
-            showErrorDialog(resources.getString("signup"), resources.getString("connection_error"));
+            } catch (RemoteException e) {
+                showErrorDialog(resources.getString("signup"), resources.getString("connection_error"));
 
-        } catch (MissingFieldException e) {
-            showErrorDialog(
-                    resources.getString("signup"),
-                    resources.getString("missing_field") + ": " + resources.getString(e.getMissingField().toLowerCase())
-            );
+            } catch (MissingFieldException e) {
+                showErrorDialog(
+                        resources.getString("signup"),
+                        resources.getString("missing_field") + ": " + resources.getString(e.getMissingField().toLowerCase())
+                );
 
-        } catch (InvalidDataException e) {
-            showErrorDialog(
-                    resources.getString("signup"),
-                    resources.getString("invalid_data") + ": " + resources.getString(e.getInvalidField().toLowerCase())
-            );
+            } catch (InvalidDataException e) {
+                showErrorDialog(
+                        resources.getString("signup"),
+                        resources.getString("invalid_data") + ": " + resources.getString(e.getInvalidField().toLowerCase())
+                );
 
-        } catch (EmailAlreadyInUseException e) {
-            showErrorDialog(resources.getString("signup"), resources.getString("email_already_in_use"));
-        }
+            } catch (EmailAlreadyInUseException e) {
+                showErrorDialog(resources.getString("signup"), resources.getString("email_already_in_use"));
+            }
+        });
     }
 
 }

@@ -2,6 +2,7 @@ package it.unishare.client.controllers;
 
 import com.sun.pdfview.PDFFile;
 import com.sun.pdfview.PDFPage;
+import it.unishare.client.layout.ConfirmationDialogListener;
 import it.unishare.common.connection.dht.NoteFile;
 import it.unishare.common.connection.dht.NoteMetadata;
 import it.unishare.common.connection.dht.UniShareNode;
@@ -12,7 +13,6 @@ import it.unishare.client.layout.MultipleIconButtonTableCell;
 import it.unishare.client.managers.FilesManager;
 import it.unishare.client.utils.FileUtils;
 import it.unishare.client.utils.GUIUtils;
-import it.unishare.common.kademlia.KademliaFile;
 import it.unishare.common.models.User;
 import it.unishare.common.utils.HashingUtils;
 import it.unishare.common.utils.Quaternary;
@@ -92,6 +92,9 @@ public class ShareController extends AbstractController implements Initializable
     public void initialize(URL location, ResourceBundle resources) {
         // Resources
         this.resources = resources;
+
+        // Disable the center page when the reviews are shown
+        hiddenSidesPane.getContent().disableProperty().bind(hiddenSidesPane.getRight().visibleProperty());
 
         // Share new file
         List<String> universities = FileUtils.readFileLines(getClass().getResourceAsStream("/values/universities.txt"));
@@ -269,7 +272,7 @@ public class ShareController extends AbstractController implements Initializable
      *
      * @param   file    file
      */
-    private void preview(KademliaFile file) {
+    private void preview(NoteFile file) {
         User user = ConnectionManager.getInstance().getUser();
         String filePath = FilesManager.getFilePath(user.getId(), file);
 
@@ -315,7 +318,7 @@ public class ShareController extends AbstractController implements Initializable
      *
      * @param   file    file
      */
-    private void open(KademliaFile file) {
+    private void open(NoteFile file) {
         User user = ConnectionManager.getInstance().getUser();
         String filePath = FilesManager.getFilePath(user.getId(), file);
 
@@ -332,25 +335,30 @@ public class ShareController extends AbstractController implements Initializable
      *
      * @param   file    file
      */
-    private void delete(KademliaFile file) {
-        // Delete the real file
-        User user = ConnectionManager.getInstance().getUser();
-        String filePath = FilesManager.getFilePath(user.getId(), file);
+    private void delete(NoteFile file) {
+        showConfirmationDialog(resources.getString("attention"), resources.getString("are_you_sure"), result -> {
+            if (!result)
+                return;
 
-        try {
-            Files.delete(Paths.get(filePath));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            // Delete the real file
+            User user = ConnectionManager.getInstance().getUser();
+            String filePath = FilesManager.getFilePath(user.getId(), file);
 
-        // Remove from the database
-        DatabaseManager.getInstance().deleteSharedFile(user.getId(), file.getKey().getBytes());
+            try {
+                Files.delete(Paths.get(filePath));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-        // Delete from the node memory
-        ConnectionManager.getInstance().getNode().deleteFile(file.getKey());
+            // Remove from the database
+            DatabaseManager.getInstance().deleteSharedFile(user, file);
 
-        // Reload data
-        loadFiles();
+            // Delete from the node memory
+            ConnectionManager.getInstance().getNode().deleteFile(file.getKey());
+
+            // Reload data
+            loadFiles();
+        });
     }
 
 

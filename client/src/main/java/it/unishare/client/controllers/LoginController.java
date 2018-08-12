@@ -15,6 +15,7 @@ import javafx.scene.input.KeyEvent;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.ResourceBundle;
+import java.util.concurrent.CompletableFuture;
 
 public class LoginController extends AbstractController {
 
@@ -51,24 +52,26 @@ public class LoginController extends AbstractController {
         String email = txtEmail.getText().trim();
         String password = txtPassword.getText().trim();
 
-        try {
-            ConnectionManager.getInstance().login(email, password);
+        CompletableFuture.runAsync(() -> {
+            try {
+                ConnectionManager.getInstance().login(email, password);
 
-        } catch (RemoteException e) {
-            showErrorDialog(resources.getString("login"), resources.getString("connection_error"));
+            } catch (RemoteException e) {
+                showErrorDialog(resources.getString("login"), resources.getString("connection_error"));
 
-        } catch (MissingFieldException e) {
-            showErrorDialog(
-                    resources.getString("login"),
-                    resources.getString("missing_field") + ": " + resources.getString(e.getMissingField().toLowerCase())
-            );
+            } catch (MissingFieldException e) {
+                showErrorDialog(
+                        resources.getString("login"),
+                        resources.getString("missing_field") + ": " + resources.getString(e.getMissingField().toLowerCase())
+                );
 
-        } catch (NotFoundException e) {
-            showErrorDialog(resources.getString("login"), resources.getString("user_not_found"));
+            } catch (NotFoundException e) {
+                showErrorDialog(resources.getString("login"), resources.getString("user_not_found"));
 
-        } catch (WrongPasswordException e) {
-            showErrorDialog(resources.getString("login"), resources.getString("wrong_password"));
-        }
+            } catch (WrongPasswordException e) {
+                showErrorDialog(resources.getString("login"), resources.getString("wrong_password"));
+            }
+        });
     }
 
 }

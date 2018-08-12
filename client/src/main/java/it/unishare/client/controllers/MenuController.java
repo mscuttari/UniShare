@@ -3,6 +3,7 @@ package it.unishare.client.controllers;
 import it.unishare.client.managers.ConnectionManager;
 import it.unishare.client.layout.SidebarButton;
 import it.unishare.common.models.User;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -133,33 +134,35 @@ public class MenuController extends AbstractController {
      * @param   logged      whether the user has logged in (true) or not (false)
      */
     private void checkLoginStatus(boolean logged) {
-        if (logged) {
-            // Hide the login box
-            boxLogin.setVisible(false);
-            lblLogin.setVisible(false);
-            lblSignup.setVisible(false);
+        Platform.runLater(() -> {
+            if (logged) {
+                // Hide the login box
+                boxLogin.setVisible(false);
+                lblLogin.setVisible(false);
+                lblSignup.setVisible(false);
 
-            // Show the user info
-            User user = ConnectionManager.getInstance().getUser();
-            lblUser.setText(user.getFullName());
-            boxUser.setVisible(true);
+                // Show the user info
+                User user = ConnectionManager.getInstance().getUser();
+                lblUser.setText(user.getFullName());
+                boxUser.setVisible(true);
 
-        } else {
-            // Hide the user info
-            boxUser.setVisible(false);
+            } else {
+                // Hide the user info
+                boxUser.setVisible(false);
 
-            // Show the login box
-            lblLogin.setVisible(true);
-            lblSignup.setVisible(true);
-            boxLogin.setVisible(true);
+                // Show the login box
+                lblLogin.setVisible(true);
+                lblSignup.setVisible(true);
+                boxLogin.setVisible(true);
 
-            // If the last shown page is a private one, show the "Search files" page
-            if (btnDownloads.isSelected() || btnShare.isSelected()) {
-                searchNotes();
+                // If the last shown page is a private one, show the "Search files" page
+                if (btnDownloads.isSelected() || btnShare.isSelected()) {
+                    searchNotes();
+                }
+
+                btnSearch.setSelected(true);
             }
-
-            btnSearch.setSelected(true);
-        }
+        });
     }
 
 

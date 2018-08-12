@@ -1,8 +1,11 @@
 package it.unishare.client.controllers;
 
 import it.unishare.common.models.Review;
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import org.controlsfx.control.Rating;
 
 import java.net.URL;
@@ -18,6 +21,14 @@ public class ReviewListCellController extends AbstractController {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
+    }
+
+
+    public void setWidth(ListView listView) {
+        lblBody.maxWidthProperty().bind(Bindings.createDoubleBinding(
+                () -> listView.getWidth() - listView.getPadding().getLeft() - listView.getPadding().getRight() - 20,
+                listView.widthProperty(), listView.paddingProperty())
+        );
     }
 
 
