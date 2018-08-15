@@ -5,11 +5,14 @@ import it.unishare.common.models.Review;
 
 public final class UniShareNode extends KademliaNode<NoteFile, NoteMetadata> {
 
+    private ReviewsProvider reviewsProvider;
+
+
     /**
      * Default constructor
      */
     public UniShareNode() {
-        this(null);
+        this(null, null);
     }
 
 
@@ -18,8 +21,9 @@ public final class UniShareNode extends KademliaNode<NoteFile, NoteMetadata> {
      *
      * @param   fileProvider    files and reviews provider
      */
-    public UniShareNode(FilesProvider fileProvider) {
+    public UniShareNode(FilesProvider fileProvider, ReviewsProvider reviewsProvider) {
         super(fileProvider);
+        this.reviewsProvider = reviewsProvider;
     }
 
 
@@ -35,18 +39,38 @@ public final class UniShareNode extends KademliaNode<NoteFile, NoteMetadata> {
             switch (response.getType()) {
                 case GET:
                     log("Reviews list requested from " + message.getSource().getId() + " for " + ((ReviewMessage) message).getFile());
-                    response.setReviews(filesProvider.getReviews(response.getFile(), response.getPage()));
+                    response.setReviews(getReviewsProvider().getReviews(response.getFile(), response.getPage()));
                     break;
 
                 case SET:
                     log("Saving review " + ((ReviewMessage) message).getReview() + " for file " + ((ReviewMessage) message).getFile());
-                    filesProvider.saveReview(response.getFile(), response.getReview());
-                    response.setReviews(filesProvider.getReviews(((ReviewMessage) message).getFile(), 1));
+                    getReviewsProvider().saveReview(response.getFile(), response.getReview());
+                    response.setReviews(getReviewsProvider().getReviews(((ReviewMessage) message).getFile(), 1));
                     break;
             }
 
             sendMessage(response);
         }
+    }
+
+
+    /**
+     * Get reviews provider
+     *
+     * @return  reviews provider
+     */
+    public ReviewsProvider getReviewsProvider() {
+        return reviewsProvider;
+    }
+
+
+    /**
+     * Set reviews provider
+     *
+     * @param   reviewsProvider     reviews provider
+     */
+    public void setReviewsProvider(ReviewsProvider reviewsProvider) {
+        this.reviewsProvider = reviewsProvider;
     }
 
 
