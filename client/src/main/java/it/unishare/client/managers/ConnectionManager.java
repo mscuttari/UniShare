@@ -44,6 +44,7 @@ public class ConnectionManager {
             if (newValue) {
                 // Logged in
                 node.setFilesProvider(new FilesManager(user));
+                node.setReviewsProvider(new ReviewsManager(user));
 
                 Collection<NoteFile> files = DatabaseManager.getInstance().getSharedFiles(user);
                 node.storeFiles(files);
@@ -51,6 +52,7 @@ public class ConnectionManager {
             } else {
                 // Logged out
                 node.setFilesProvider(null);
+                node.setReviewsProvider(null);
                 node.deleteAllFiles();
             }
         });

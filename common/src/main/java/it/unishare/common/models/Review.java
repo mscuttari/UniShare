@@ -19,9 +19,9 @@ public class Review implements Serializable {
      * @param   body            body
      */
     public Review(String author, int rating, String body) {
-        this.rating = rating;
-        this.author = author;
-        this.body = body;
+        setAuthor(author);
+        setRating(rating);
+        setBody(body);
     }
 
 
@@ -82,7 +82,13 @@ public class Review implements Serializable {
      *
      * @param   rating      rating
      */
-    public void setRating(Integer rating) {
+    public void setRating(int rating) {
+        if (rating < 1) {
+            rating = 1;
+        } else if (rating > 5) {
+            rating = 5;
+        }
+
         this.rating = rating;
     }
 

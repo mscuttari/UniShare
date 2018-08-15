@@ -1,7 +1,6 @@
 package it.unishare.server.test;
 
 import it.unishare.server.Server;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.lang.reflect.InvocationTargetException;
