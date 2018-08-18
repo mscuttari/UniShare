@@ -2,7 +2,7 @@ package it.unishare.common.connection.dht;
 
 import it.unishare.common.kademlia.KademliaFileData;
 
-public final class NoteMetadata implements KademliaFileData {
+public final class NoteMetadata extends KademliaFileData {
 
     // Serialization
     private static final long serialVersionUID = 5975688018355674770L;
