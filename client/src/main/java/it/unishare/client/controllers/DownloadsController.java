@@ -2,7 +2,7 @@ package it.unishare.client.controllers;
 
 import it.unishare.client.layout.Download;
 import it.unishare.client.layout.DownloadListCell;
-import it.unishare.client.managers.DownloadManager;
+import it.unishare.client.managers.DownloadsManager;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -24,7 +24,7 @@ public class DownloadsController extends AbstractController {
 
         listDownloads.setCellFactory(param -> new DownloadListCell(resources));
 
-        ObservableList<Download> downloads = DownloadManager.getInstance().getDownloads();
+        ObservableList<Download> downloads = DownloadsManager.getInstance().getDownloads();
         downloads.addListener((ListChangeListener<Download>) c -> updateView(downloads));
 
         listDownloads.setItems(downloads);
