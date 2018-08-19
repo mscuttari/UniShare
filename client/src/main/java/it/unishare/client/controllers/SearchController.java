@@ -7,7 +7,7 @@ import it.unishare.common.connection.dht.ReviewsListener;
 import it.unishare.common.connection.dht.UniShareNode;
 import it.unishare.client.managers.ConnectionManager;
 import it.unishare.client.managers.DatabaseManager;
-import it.unishare.client.managers.DownloadManager;
+import it.unishare.client.managers.DownloadsManager;
 import it.unishare.client.utils.FileUtils;
 import it.unishare.client.utils.GUIUtils;
 import it.unishare.common.kademlia.KademliaFile;
@@ -196,7 +196,7 @@ public class SearchController extends AbstractController implements Initializabl
         File downloadPath = chooseDownloadPath();
 
         if (downloadPath != null) {
-            DownloadManager.getInstance().download(file, downloadPath);
+            DownloadsManager.getInstance().download(file, downloadPath);
         }
     }
 

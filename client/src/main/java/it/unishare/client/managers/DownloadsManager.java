@@ -11,13 +11,13 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class DownloadManager {
+public class DownloadsManager {
 
     // Debug
     private static final String TAG = "DownloadManager";
 
     // Singleton instance
-    private static DownloadManager instance;
+    private static DownloadsManager instance;
 
     private ObservableList<Download> downloads;
     private ExecutorService executorService;
@@ -26,7 +26,7 @@ public class DownloadManager {
     /**
      * Constructor
      */
-    private DownloadManager() {
+    private DownloadsManager() {
         User user = ConnectionManager.getInstance().getUser();
         List<Download> downloadedFiles = DatabaseManager.getInstance().getDownloadedAndShowableFiles(user);
         this.downloads = FXCollections.observableList(downloadedFiles);
@@ -44,9 +44,9 @@ public class DownloadManager {
      *
      * @return  singleton instance
      */
-    public static DownloadManager getInstance() {
+    public static DownloadsManager getInstance() {
         if (instance == null)
-            instance = new DownloadManager();
+            instance = new DownloadsManager();
 
         return instance;
     }
